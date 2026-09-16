@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { GameDig } from "gamedig";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const XCSTRIKE_BASE =
+  "https://xcstrike.com/api/v1";
+
 function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
   const key =
     process.env.SUPABASE_SECRET_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -23,120 +27,176 @@ function getSupabase() {
   });
 }
 
-function withTimeout(promise, timeoutMs = 4000) {
-  return Promise.race([
-    promise,
-
-    new Promise((_, reject) => {
-      const timer = setTimeout(() => {
-        clearTimeout(timer);
-
-        reject(
-          new Error(
-            `Server sorgusu ${timeoutMs}ms içinde cevap vermedi.`
-          )
-        );
-      }, timeoutMs);
-    }),
-  ]);
-}
-
-async function queryServer(server) {
-  const host = String(server.host || "").trim();
+function createOfflineServer(server) {
+  const host =
+    String(server.host || "").trim();
 
   const port =
-    Number(server.port) ||
-    27015;
+    Number(server.port) || 27015;
 
-  const offlineResult = {
+  return {
     id: server.id,
+
     name: server.name,
     databaseName: server.name,
+
     host,
     port,
+
     serverType:
-      server.server_type ||
-      "public",
+      server.server_type || "public",
+
     ts3Address:
-      server.ts3_address ||
-      "",
+      server.ts3_address || "",
+
     sortOrder:
-      server.sort_order ||
-      0,
+      server.sort_order || 0,
 
     online: false,
+
     map: "-",
+
     players: 0,
+
     maxPlayers: 32,
+
     ping: null,
 
     connect: `${host}:${port}`,
   };
+}
 
-  if (!host) {
-    return offlineResult;
+async function queryXCStrike(server) {
+  const fallback =
+    createOfflineServer(server);
+
+  if (!fallback.host) {
+    return fallback;
   }
 
+  const controller =
+    new AbortController();
+
+  const timeout =
+    setTimeout(() => {
+      controller.abort();
+    }, 5000);
+
   try {
-    const state = await withTimeout(
-      GameDig.query({
-        type: "cs16",
-        host,
-        port,
+    const url =
+      `${XCSTRIKE_BASE}/server/` +
+      `${encodeURIComponent(
+        fallback.host
+      )}/` +
+      `${fallback.port}`;
 
-        givenPortOnly: true,
+    const response =
+      await fetch(url, {
+        method: "GET",
 
-        maxRetries: 0,
+        cache: "no-store",
 
-        socketTimeout: 1200,
-        attemptTimeout: 3000,
+        signal:
+          controller.signal,
 
-        requestPlayers: false,
-        requestRules: false,
-      }),
-      4000
-    );
+        headers: {
+          Accept:
+            "application/json",
+        },
+      });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error(
+        "XCSTRIKE HTTP ERROR:",
+        fallback.connect,
+        response.status
+      );
+
+      return fallback;
+    }
+
+    const data =
+      await response.json();
+
+    if (
+      !data ||
+      data.ok === false ||
+      !data.server
+    ) {
+      console.error(
+        "XCSTRIKE SERVER NOT FOUND:",
+        fallback.connect,
+        data
+      );
+
+      return fallback;
+    }
+
+    const live =
+      data.server;
+
+    const currentPlayers =
+      Number(
+        live?.players?.current
+      );
+
+    const maximumPlayers =
+      Number(
+        live?.players?.max
+      );
+
+    const ping =
+      Number(
+        live?.ping_ms
+      );
 
     return {
-      ...offlineResult,
+      ...fallback,
 
       online: true,
 
       name:
-        state.name ||
+        live.hostname ||
         server.name,
 
       map:
-        state.map ||
-        "-",
+        live.map || "-",
 
       players:
-        typeof state.numplayers === "number"
-          ? state.numplayers
-          : Array.isArray(state.players)
-          ? state.players.length
+        Number.isFinite(
+          currentPlayers
+        )
+          ? currentPlayers
           : 0,
 
       maxPlayers:
-        state.maxplayers ||
-        32,
+        Number.isFinite(
+          maximumPlayers
+        )
+          ? maximumPlayers
+          : 32,
 
       ping:
-        typeof state.ping === "number"
-          ? state.ping
+        Number.isFinite(ping)
+          ? ping
           : null,
 
       connect:
-        state.connect ||
-        `${host}:${port}`,
+        live?.links?.connect ||
+        `${fallback.host}:${fallback.port}`,
     };
   } catch (error) {
+    clearTimeout(timeout);
+
     console.error(
-      `[SERVER STATUS] ${host}:${port}`,
+      "XCSTRIKE QUERY ERROR:",
+      fallback.connect,
       error?.message || error
     );
 
-    return offlineResult;
+    return fallback;
   }
 }
 
@@ -149,11 +209,13 @@ export async function GET() {
       return NextResponse.json(
         {
           servers: [],
+
           error:
             "Supabase environment variables eksik.",
         },
         {
           status: 500,
+
           headers: {
             "Cache-Control":
               "no-store, no-cache, must-revalidate",
@@ -162,31 +224,51 @@ export async function GET() {
       );
     }
 
-    const { data, error } =
+    const {
+      data,
+      error,
+    } =
       await supabase
         .from("servers")
         .select(
-          "id, name, host, port, server_type, ts3_address, sort_order, is_active"
+          [
+            "id",
+            "name",
+            "host",
+            "port",
+            "server_type",
+            "ts3_address",
+            "sort_order",
+            "is_active",
+          ].join(",")
         )
-        .eq("is_active", true)
-        .order("sort_order", {
-          ascending: true,
-        });
+        .eq(
+          "is_active",
+          true
+        )
+        .order(
+          "sort_order",
+          {
+            ascending: true,
+          }
+        );
 
     if (error) {
       console.error(
-        "SERVER DB ERROR:",
+        "SERVER DATABASE ERROR:",
         error
       );
 
       return NextResponse.json(
         {
           servers: [],
+
           error:
             "Sunucu kayıtları alınamadı.",
         },
         {
           status: 500,
+
           headers: {
             "Cache-Control":
               "no-store, no-cache, must-revalidate",
@@ -195,13 +277,18 @@ export async function GET() {
       );
     }
 
-    const serverRows =
+    const rows =
       data || [];
 
+    /*
+     * Sunucuları paralel sorguluyoruz.
+     * Biri cevap vermezse diğerlerini
+     * bekletmiyor.
+     */
     const servers =
       await Promise.all(
-        serverRows.map(
-          queryServer
+        rows.map(
+          queryXCStrike
         )
       );
 
@@ -215,6 +302,12 @@ export async function GET() {
         headers: {
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
+
+          "CDN-Cache-Control":
+            "no-store",
+
+          "Vercel-CDN-Cache-Control":
+            "no-store",
         },
       }
     );
@@ -227,6 +320,7 @@ export async function GET() {
     return NextResponse.json(
       {
         servers: [],
+
         error:
           "Sunucu durumları alınamadı.",
       },
