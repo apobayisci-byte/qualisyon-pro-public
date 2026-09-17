@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { siteConfig } from "../../config/siteConfig";
 
 export default function YoneticiPage() {
 const [session, setSession] = useState(null);
@@ -1441,14 +1442,12 @@ return (
 
 <div className="admin-login-brand">
 <img
-src="/cs-logo.png"
+src={siteConfig.logo}
 alt=""
 />
 
 <div>
-<strong>
-QUALISYON
-</strong>
+<strong>{siteConfig.brandName}</strong>
 
 <span>
 YÖNETİCİ PANELİ
@@ -1552,14 +1551,12 @@ return (
 
 <div className="admin-header-brand">
 <img
-src="/cs-logo.png"
+src={siteConfig.logo}
 alt=""
 />
 
 <div>
-<strong>
-QUALISYON
-</strong>
+<strong>{siteConfig.brandName}</strong>
 
 <span>
 YÖNETİCİ PANELİ
@@ -1702,7 +1699,7 @@ setActiveTab("contact");
 <>
 
 <div className="admin-section-heading">
-<span>QUALISYON</span>
+<span>{siteConfig.brandName}</span>
 <h1>GALERİ YÖNETİMİ</h1>
 </div>
 
@@ -1861,9 +1858,7 @@ SİL
 
 <div className="admin-section-heading">
 
-<span>
-QUALISYON
-</span>
+<span>{siteConfig.brandName}</span>
 
 <h1>
 YÖNETİM KADROSU
@@ -2031,8 +2026,7 @@ className={`admin-management-item ${
 <div className="admin-management-avatar">
 <img
 src={
-item.avatar_url ||
-"/cs-logo.png"
+item.avatar_url || siteConfig.logo
 }
 alt=""
 />
@@ -2102,7 +2096,7 @@ SİL
 
 <div className="admin-section-heading">
 
-<span>QUALISYON</span>
+<span>{siteConfig.brandName}</span>
 
 <h1>
 SUNUCU YÖNETİMİ
@@ -3004,9 +2998,7 @@ SİL
 
 <div className="admin-section-heading">
 
-<span>
-QUALISYON
-</span>
+<span>{siteConfig.brandName}</span>
 
 <h1>
 İLETİŞİM YÖNETİMİ

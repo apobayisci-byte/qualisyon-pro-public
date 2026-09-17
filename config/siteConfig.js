@@ -1,6 +1,6 @@
 ﻿export const siteConfig = {
-  brandName: "QUALISYON",
-  subTitle: "PRO PUBLIC",
+  brandName: "WEB ' AİLESİ",
+  subTitle: "ÖZEL",
   slogan: "AYNI OYUN, AYNI REKABET.",
 
   logo: "/cs-logo.png",
@@ -9,11 +9,11 @@
     "Counter-Strike 1.6 topluluğu. Aynı oyun, aynı rekabet.",
 
   copyright:
-    "© 2026 QUALISYON PRO PUBLIC. Tüm hakları saklıdır.",
+    "© 2026 WEB'AİLESİ Tüm hakları saklıdır.",
 
   defaultServer: {
-    connect: "95.173.173.30:27015",
-    ts3Address: "qlspro",
+    connect: "95.173.173.6:27015",
+    ts3Address: "trebles",
   },
 
   downloads: {
