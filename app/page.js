@@ -52,6 +52,7 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState("anasayfa");
 
   const [servers, setServers] = useState([]);
+  const [serversLoading, setServersLoading] = useState(true);
 
   const primaryServer = useMemo(() => {
     if (servers.length > 0) {
@@ -65,6 +66,7 @@ export default function Home() {
       players: null,
       maxPlayers: 32,
       ping: null,
+      serverType: siteConfig.subTitle,
       connect: siteConfig.defaultServer.connect,
       ts3Address: siteConfig.defaultServer.ts3Address,
     };
@@ -126,11 +128,13 @@ export default function Home() {
         if (!active) return;
 
         setServers(data.servers || []);
+        setServersLoading(false);
       } catch (error) {
         console.error(error);
 
         if (active) {
           setServers([]);
+          setServersLoading(false);
         }
       }
     }
@@ -594,7 +598,7 @@ export default function Home() {
     setSupportSending(false);
   }
 
-  return (
+    return (
     <main className="site-page">
       <header className="navbar">
         <div className="navbar-inner">
@@ -757,9 +761,11 @@ export default function Home() {
                   </small>
 
                   <strong>
-                    {primaryServer.online
-                      ? primaryServer.map
-                      : "-"}
+                    {serversLoading
+                      ? "..."
+                      : primaryServer.online
+                        ? primaryServer.map
+                        : "-"}
                   </strong>
                 </div>
               </div>
@@ -775,14 +781,14 @@ export default function Home() {
                   </small>
 
                   <strong>
-                    {primaryServer.online &&
-                    primaryServer.players !==
-                      null
-                      ? `${primaryServer.players} / ${primaryServer.maxPlayers}`
-                      : `-- / ${
-                          primaryServer.maxPlayers ||
-                          32
-                        }`}
+                    {serversLoading
+                      ? "..."
+                      : primaryServer.online &&
+                          primaryServer.players !== null
+                        ? `${primaryServer.players} / ${primaryServer.maxPlayers}`
+                        : `-- / ${
+                            primaryServer.maxPlayers || 32
+                          }`}
                   </strong>
                 </div>
               </div>
@@ -793,8 +799,9 @@ export default function Home() {
                 <span
                   className="status-dot"
                   style={{
-                    background:
-                      primaryServer.online
+                    background: serversLoading
+                      ? "#d0a84f"
+                      : primaryServer.online
                         ? "#61dc75"
                         : "#e05252",
                   }}
@@ -803,23 +810,26 @@ export default function Home() {
                 <div>
                   <strong
                     style={{
-                      color:
-                        primaryServer.online
+                      color: serversLoading
+                        ? "#d8b45d"
+                        : primaryServer.online
                           ? "#6ee27d"
                           : "#e05252",
                     }}
                   >
-                    {primaryServer.online
-                      ? "AÇIK"
-                      : "KAPALI"}
+                    {serversLoading
+                      ? "SORGULANIYOR"
+                      : primaryServer.online
+                        ? "AÇIK"
+                        : "KAPALI"}
                   </strong>
 
                   <small>
-                    {primaryServer.online &&
-                    primaryServer.ping !==
-                      null
-                      ? `${primaryServer.ping} MS`
-                      : "PRO PUBLIC"}
+                    {primaryServer.serverType
+                      ? String(
+                          primaryServer.serverType
+                        ).toUpperCase()
+                      : siteConfig.subTitle}
                   </small>
                 </div>
               </div>
@@ -847,7 +857,9 @@ export default function Home() {
 
           {servers.length === 0 ? (
             <div className="server-empty-state">
-              Aktif sunucu bulunamadı.
+              {serversLoading
+                ? "Sunucular sorgulanıyor..."
+                : "Aktif sunucu bulunamadı."}
             </div>
           ) : (
             <div
@@ -969,19 +981,19 @@ export default function Home() {
                       </div>
 
                       <div className="server-stat">
-                        <div className="ping-dot"></div>
+                        <ServerIcon />
 
                         <div>
                           <small>
-                            PING
+                            SUNUCU TÜRÜ
                           </small>
 
                           <strong>
-                            {server.online &&
-                            server.ping !==
-                              null
-                              ? `${server.ping} MS`
-                              : "-"}
+                            {server.serverType
+                              ? String(
+                                  server.serverType
+                                ).toUpperCase()
+                              : siteConfig.subTitle}
                           </strong>
                         </div>
                       </div>
@@ -1156,7 +1168,7 @@ export default function Home() {
                         <div className="management-card-number">
                           {String(
                             index +
-                              1
+                            1
                           ).padStart(
                             2,
                             "0"
