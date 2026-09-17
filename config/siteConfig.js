@@ -12,7 +12,7 @@
     "© 2026 QUALISYON PRO PUBLIC. Tüm hakları saklıdır.",
 
   defaultServer: {
-    connect: "95.173.173.32:27015",
+    connect: "95.173.173.30:27015",
     ts3Address: "qlspro",
   },
 
