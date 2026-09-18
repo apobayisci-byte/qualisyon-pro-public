@@ -1,19 +1,19 @@
 ﻿export const siteConfig = {
-  brandName: "WEB ' AİLESİ",
-  subTitle: "ÖZEL",
+  brandName: "ORTAM CS",
+  subTitle: "PRO PUBLIC",
   slogan: "AYNI OYUN, AYNI REKABET.",
 
-  logo: "/webailesi.png",
+  logo: "/ortamcs.jpg",
 
   footerDescription:
     "Counter-Strike 1.6 topluluğu. Aynı oyun, aynı rekabet.",
 
   copyright:
-    "© 2026 WEB'AİLESİ Tüm hakları saklıdır.",
+    "© 2026 ORTAM CS - Tüm hakları saklıdır.",
 
   defaultServer: {
-    connect: "95.173.173.6:27015",
-    ts3Address: "trebles",
+    connect: "95.173.173.8:27015",
+    ts3Address: "ortamcspro",
   },
 
   downloads: {
