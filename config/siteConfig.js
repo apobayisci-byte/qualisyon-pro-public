@@ -3,7 +3,7 @@
   subTitle: "ÖZEL",
   slogan: "AYNI OYUN, AYNI REKABET.",
 
-  logo: "/cs-logo.png",
+  logo: "/webailesi.png",
 
   footerDescription:
     "Counter-Strike 1.6 topluluğu. Aynı oyun, aynı rekabet.",

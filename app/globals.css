@@ -3274,3 +3274,43 @@ button, input { font: inherit; }
 .admin-management-item {
   border-radius: 14px !important;
 }
+
+/* HEADER LOGO FIX */
+
+.brand-logo-image {
+  width: 46px !important;
+  height: 46px !important;
+  object-fit: contain !important;
+  filter: none !important;
+  border-radius: 50%;
+}
+
+.admin-login-brand img,
+.admin-header-brand img {
+  width: 46px !important;
+  height: 46px !important;
+  object-fit: contain !important;
+  filter: none !important;
+  border-radius: 50%;
+}
+
+/* SUNUCU TURU: PUBLIC -> Public */
+.server-panel-stats .server-stat:nth-child(4) strong {
+  text-transform: lowercase !important;
+}
+
+.server-panel-stats .server-stat:nth-child(4) strong::first-letter {
+  text-transform: uppercase !important;
+}
+
+/* SUNUCU TURU BOYUT ESITLEME */
+.server-panel-stats .server-stat:nth-child(4) strong {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: lowercase !important;
+}
+
+.server-panel-stats .server-stat:nth-child(4) strong::first-letter {
+  text-transform: uppercase !important;
+}
