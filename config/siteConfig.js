@@ -1,5 +1,5 @@
 ﻿export const siteConfig = {
-  brandName: "ORTAM CS",
+  brandName: "ORTAMCS",
   subTitle: "PRO PUBLIC",
   slogan: "AYNI OYUN, AYNI REKABET.",
 
