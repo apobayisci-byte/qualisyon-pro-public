@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import dgram from "node:dgram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,57 +52,442 @@ function createOfflineServer(server) {
       server.sort_order || 0,
 
     online: false,
-
     map: "-",
 
     players: 0,
-
     maxPlayers: 32,
 
     ping: null,
 
     connect: `${host}:${port}`,
+
+    queryMethod: null,
+
+    directFound: false,
+
+    steamConfigured: Boolean(
+      process.env.STEAM_WEB_API_KEY
+    ),
+
+    steamFound: false,
+
+    steamError: null,
   };
 }
 
-async function querySteam(server) {
-  const fallback =
-    createOfflineServer(server);
+/* =========================================================
+   BUFFER OKUMA
+========================================================= */
 
-  const apiKey =
-    process.env.STEAM_WEB_API_KEY;
+function readCString(buffer, offset) {
+  let end = offset;
 
-  if (!apiKey) {
-    console.error(
-      "STEAM_WEB_API_KEY bulunamadı."
-    );
-
-    return fallback;
+  while (
+    end < buffer.length &&
+    buffer[end] !== 0
+  ) {
+    end++;
   }
 
-  if (!fallback.host) {
-    return fallback;
+  return {
+    value:
+      buffer
+        .subarray(offset, end)
+        .toString("utf8"),
+
+    next:
+      end + 1,
+  };
+}
+
+/* =========================================================
+   A2S INFO PARSER
+========================================================= */
+
+function parseA2SInfo(buffer) {
+  if (
+    !buffer ||
+    buffer.length < 6
+  ) {
+    return null;
   }
 
-  const address =
-    `${fallback.host}:${fallback.port}`;
+  const header =
+    buffer.readInt32LE(0);
+
+  if (header !== -1) {
+    return null;
+  }
+
+  const type =
+    buffer.readUInt8(4);
 
   /*
-   * Steam Master Server filtresi.
-   *
-   * Örnek:
-   * \addr\95.173.173.30:27015
+   * SOURCE FORMAT
+   * 0x49 = 'I'
    */
-  const filter =
-    `\\addr\\${address}`;
+  if (type === 0x49) {
+    let offset = 5;
 
+    // protocol
+    offset += 1;
+
+    const nameInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      nameInfo.next;
+
+    const mapInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      mapInfo.next;
+
+    const folderInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      folderInfo.next;
+
+    const gameInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      gameInfo.next;
+
+    if (
+      offset + 5 >
+      buffer.length
+    ) {
+      return null;
+    }
+
+    // App ID
+    offset += 2;
+
+    const players =
+      buffer.readUInt8(
+        offset++
+      );
+
+    const maxPlayers =
+      buffer.readUInt8(
+        offset++
+      );
+
+    const bots =
+      buffer.readUInt8(
+        offset++
+      );
+
+    return {
+      name:
+        nameInfo.value,
+
+      map:
+        mapInfo.value,
+
+      players,
+
+      maxPlayers,
+
+      bots,
+
+      protocol:
+        "source",
+    };
+  }
+
+  /*
+   * GOLDSOURCE FORMAT
+   * 0x6D = 'm'
+   *
+   * CS 1.6 eski query formatı.
+   */
+  if (type === 0x6d) {
+    let offset = 5;
+
+    const addressInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      addressInfo.next;
+
+    const nameInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      nameInfo.next;
+
+    const mapInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      mapInfo.next;
+
+    const folderInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      folderInfo.next;
+
+    const gameInfo =
+      readCString(
+        buffer,
+        offset
+      );
+
+    offset =
+      gameInfo.next;
+
+    if (
+      offset + 2 >
+      buffer.length
+    ) {
+      return null;
+    }
+
+    const players =
+      buffer.readUInt8(
+        offset++
+      );
+
+    const maxPlayers =
+      buffer.readUInt8(
+        offset++
+      );
+
+    return {
+      address:
+        addressInfo.value,
+
+      name:
+        nameInfo.value,
+
+      map:
+        mapInfo.value,
+
+      players,
+
+      maxPlayers,
+
+      protocol:
+        "goldsource",
+    };
+  }
+
+  return null;
+}
+
+/* =========================================================
+   DIRECT UDP A2S
+========================================================= */
+
+function directA2SQuery(
+  host,
+  port
+) {
+  return new Promise(
+    (resolve) => {
+      const socket =
+        dgram.createSocket(
+          "udp4"
+        );
+
+      let finished = false;
+
+      const start =
+        Date.now();
+
+      function finish(
+        result
+      ) {
+        if (finished) {
+          return;
+        }
+
+        finished = true;
+
+        clearTimeout(timeout);
+
+        try {
+          socket.close();
+        } catch {}
+
+        resolve(result);
+      }
+
+      const timeout =
+        setTimeout(() => {
+          finish({
+            success: false,
+
+            error:
+              "A2S zaman aşımı.",
+          });
+        }, 2500);
+
+      socket.on(
+        "error",
+        (error) => {
+          finish({
+            success: false,
+
+            error:
+              error?.message ||
+              "UDP sorgu hatası.",
+          });
+        }
+      );
+
+      socket.on(
+        "message",
+        (message) => {
+          /*
+           * CHALLENGE RESPONSE
+           * FF FF FF FF 41 + challenge
+           */
+          if (
+            message.length >= 9 &&
+            message.readInt32LE(
+              0
+            ) === -1 &&
+            message.readUInt8(
+              4
+            ) === 0x41
+          ) {
+            const challenge =
+              message.subarray(
+                5,
+                9
+              );
+
+            const prefix =
+              Buffer.from([
+                0xff,
+                0xff,
+                0xff,
+                0xff,
+              ]);
+
+            const query =
+              Buffer.from(
+                "TSource Engine Query\0",
+                "binary"
+              );
+
+            const packet =
+              Buffer.concat([
+                prefix,
+                query,
+                challenge,
+              ]);
+
+            socket.send(
+              packet,
+              port,
+              host
+            );
+
+            return;
+          }
+
+          const parsed =
+            parseA2SInfo(
+              message
+            );
+
+          if (!parsed) {
+            finish({
+              success: false,
+
+              error:
+                "A2S cevabı okunamadı.",
+            });
+
+            return;
+          }
+
+          finish({
+            success: true,
+
+            ping:
+              Date.now() -
+              start,
+
+            data:
+              parsed,
+          });
+        }
+      );
+
+      /*
+       * A2S_INFO
+       */
+      const packet =
+        Buffer.concat([
+          Buffer.from([
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+          ]),
+
+          Buffer.from(
+            "TSource Engine Query\0",
+            "binary"
+          ),
+        ]);
+
+      socket.send(
+        packet,
+        port,
+        host
+      );
+    }
+  );
+}
+
+/* =========================================================
+   STEAM HTTP FALLBACK
+========================================================= */
+
+async function fetchSteam(
+  apiKey,
+  filter
+) {
   const url =
     "https://api.steampowered.com/" +
     "IGameServersService/" +
     "GetServerList/v1/" +
     `?key=${encodeURIComponent(apiKey)}` +
     `&filter=${encodeURIComponent(filter)}` +
-    "&limit=10";
+    "&limit=50";
 
   const controller =
     new AbortController();
@@ -109,115 +495,300 @@ async function querySteam(server) {
   const timeout =
     setTimeout(() => {
       controller.abort();
-    }, 7000);
+    }, 6000);
 
   try {
     const response =
       await fetch(url, {
-        method: "GET",
         cache: "no-store",
-        signal: controller.signal,
 
-        headers: {
-          Accept: "application/json",
-        },
+        signal:
+          controller.signal,
       });
 
     clearTimeout(timeout);
 
     if (!response.ok) {
-      console.error(
-        "STEAM API HTTP ERROR:",
-        address,
-        response.status
-      );
+      return {
+        servers: [],
 
-      return fallback;
+        error:
+          `HTTP ${response.status}`,
+      };
+    }
+
+    const raw =
+      await response.text();
+
+    if (!raw.trim()) {
+      return {
+        servers: [],
+
+        error:
+          "Steam boş cevap döndürdü.",
+      };
     }
 
     const data =
-      await response.json();
+      JSON.parse(raw);
 
-    const servers =
-      data?.response?.servers || [];
+    return {
+      servers:
+        data?.response?.servers ||
+        [],
 
-    /*
-     * Filter zaten IP:PORT için yapılıyor.
-     * Yine de güvenli olması için doğru
-     * adresi tekrar buluyoruz.
-     */
-    const live =
-      servers.find((item) => {
-        return (
-          String(item?.addr || "").trim() ===
-          address
-        );
-      }) || servers[0];
+      error: null,
+    };
+  } catch (error) {
+    clearTimeout(timeout);
 
-    if (!live) {
-      console.error(
-        "STEAM SERVER NOT FOUND:",
-        address
+    return {
+      servers: [],
+
+      error:
+        error?.message ||
+        "Steam sorgu hatası.",
+    };
+  }
+}
+
+async function querySteam(
+  server,
+  fallback
+) {
+  const apiKey =
+    process.env.STEAM_WEB_API_KEY;
+
+  if (!apiKey) {
+    return {
+      ...fallback,
+
+      steamError:
+        "STEAM_WEB_API_KEY bulunamadı.",
+    };
+  }
+
+  const address =
+    `${fallback.host}:${fallback.port}`;
+
+  const filters = [
+    `\\addr\\${address}`,
+    `\\gameaddr\\${address}`,
+    `\\addr\\${fallback.host}`,
+  ];
+
+  let lastError = null;
+
+  for (
+    const filter
+    of filters
+  ) {
+    const result =
+      await fetchSteam(
+        apiKey,
+        filter
       );
 
-      return fallback;
+    if (result.error) {
+      lastError =
+        result.error;
     }
 
-    const currentPlayers =
-      Number(live.players);
+    if (
+      !result.servers ||
+      result.servers.length ===
+        0
+    ) {
+      continue;
+    }
 
-    const maximumPlayers =
-      Number(live.max_players);
+    const live =
+      result.servers.find(
+        (item) => {
+          const addr =
+            String(
+              item?.addr ||
+                ""
+            ).trim();
+
+          return (
+            addr ===
+              address ||
+            addr.startsWith(
+              `${fallback.host}:`
+            )
+          );
+        }
+      ) ||
+      result.servers[0];
+
+    if (!live) {
+      continue;
+    }
+
+    const players =
+      Number(
+        live.players
+      );
+
+    const maxPlayers =
+      Number(
+        live.max_players
+      );
 
     return {
       ...fallback,
 
       online: true,
 
-      /*
-       * Sunucu adı Steam query'den geliyor.
-       * databaseName admin panelde kayıtlı
-       * adı korumaya devam ediyor.
-       */
       name:
         live.name ||
         server.name,
 
       map:
-        live.map || "-",
+        live.map ||
+        "-",
 
       players:
-        Number.isFinite(currentPlayers)
-          ? currentPlayers
+        Number.isFinite(
+          players
+        )
+          ? players
           : 0,
 
       maxPlayers:
-        Number.isFinite(maximumPlayers)
-          ? maximumPlayers
+        Number.isFinite(
+          maxPlayers
+        )
+          ? maxPlayers
           : 32,
 
-      /*
-       * Steam GetServerList ping değeri
-       * döndürmediği için null bırakıyoruz.
-       */
-      ping: null,
-
       connect:
-        live.addr ||
         address,
-    };
-  } catch (error) {
-    clearTimeout(timeout);
 
-    console.error(
-      "STEAM QUERY ERROR:",
-      address,
-      error?.message || error
+      queryMethod:
+        "steam",
+
+      steamConfigured:
+        true,
+
+      steamFound:
+        true,
+
+      steamError:
+        null,
+    };
+  }
+
+  return {
+    ...fallback,
+
+    steamConfigured:
+      true,
+
+    steamFound:
+      false,
+
+    steamError:
+      lastError ||
+      `Steam listesinde bulunamadı: ${address}`,
+  };
+}
+
+/* =========================================================
+   ANA SERVER QUERY
+========================================================= */
+
+async function queryServer(
+  server
+) {
+  const fallback =
+    createOfflineServer(
+      server
     );
 
-    return fallback;
+  /*
+   * Önce doğrudan sunucuya
+   * A2S_INFO atıyoruz.
+   */
+  try {
+    const direct =
+      await directA2SQuery(
+        fallback.host,
+        fallback.port
+      );
+
+    if (
+      direct.success &&
+      direct.data
+    ) {
+      return {
+        ...fallback,
+
+        online: true,
+
+        name:
+          direct.data.name ||
+          server.name,
+
+        map:
+          direct.data.map ||
+          "-",
+
+        players:
+          direct.data.players ??
+          0,
+
+        maxPlayers:
+          direct.data
+            .maxPlayers ??
+          32,
+
+        ping:
+          direct.ping ??
+          null,
+
+        connect:
+          `${fallback.host}:${fallback.port}`,
+
+        queryMethod:
+          "a2s",
+
+        directFound:
+          true,
+
+        directProtocol:
+          direct.data
+            .protocol ||
+          null,
+
+        directError:
+          null,
+      };
+    }
+
+    fallback.directError =
+      direct.error ||
+      "A2S sorgusu başarısız.";
+  } catch (error) {
+    fallback.directError =
+      error?.message ||
+      "A2S sorgusu başarısız.";
   }
+
+  /*
+   * Direct sorgu cevap vermezse
+   * Steam API fallback.
+   */
+  return querySteam(
+    server,
+    fallback
+  );
 }
+
+/* =========================================================
+   API
+========================================================= */
 
 export async function GET() {
   try {
@@ -234,11 +805,6 @@ export async function GET() {
         },
         {
           status: 500,
-
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate",
-          },
         }
       );
     }
@@ -279,50 +845,37 @@ export async function GET() {
         );
 
     if (error) {
-      console.error(
-        "SERVER DATABASE ERROR:",
-        error
-      );
-
       return NextResponse.json(
         {
           servers: [],
 
           error:
-            "Sunucu kayıtları alınamadı.",
+            "Sunucular veritabanından alınamadı.",
         },
         {
           status: 500,
-
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate",
-          },
         }
       );
     }
 
-    const rows =
-      data || [];
-
-    /*
-     * Tüm aktif sunucuları aynı anda
-     * Steam API üzerinden sorguluyoruz.
-     */
     const servers =
       await Promise.all(
-        rows.map(
-          querySteam
+        (data || []).map(
+          queryServer
         )
       );
 
     return NextResponse.json(
       {
         servers,
+
+        steamConfigured:
+          Boolean(
+            process.env
+              .STEAM_WEB_API_KEY
+          ),
       },
       {
-        status: 200,
-
         headers: {
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
@@ -337,7 +890,7 @@ export async function GET() {
     );
   } catch (error) {
     console.error(
-      "SERVER STATUS API ERROR:",
+      "SERVER STATUS ERROR:",
       error
     );
 
@@ -346,15 +899,11 @@ export async function GET() {
         servers: [],
 
         error:
-          "Sunucu durumları alınamadı.",
+          error?.message ||
+          "Sunucu sorgusu başarısız.",
       },
       {
         status: 500,
-
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate",
-        },
       }
     );
   }
