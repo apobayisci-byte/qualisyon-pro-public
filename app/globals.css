@@ -3370,3 +3370,88 @@ button, input { font: inherit; }
 
   transform: translateY(-2px);
 }
+
+/* =========================================================
+   ILETISIM - TEK KART PREMIUM DUZEN
+========================================================= */
+
+#iletisim .contact-big-card {
+  background:
+    radial-gradient(
+      circle at 8% 10%,
+      rgba(214, 175, 102, 0.09),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 95% 90%,
+      rgba(214, 175, 102, 0.045),
+      transparent 38%
+    ),
+    linear-gradient(
+      140deg,
+      rgba(18, 16, 12, 0.88),
+      rgba(6, 6, 6, 0.96)
+    ) !important;
+
+  border: 1px solid rgba(214, 175, 102, 0.20) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 0 36px rgba(214, 175, 102, 0.025),
+    0 20px 50px rgba(0, 0, 0, 0.32),
+    0 0 24px rgba(214, 175, 102, 0.04) !important;
+}
+
+/* İki iç kart artık ayrı kutu değil */
+#iletisim .contact-big-item {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+
+  padding: 24px 38px !important;
+}
+
+/* Soldaki Telefon bölümünden sonra ince ayraç */
+#iletisim .contact-big-item:first-child {
+  border-right:
+    1px solid rgba(214, 175, 102, 0.13) !important;
+}
+
+/* Hover'da kutu hareket etmesin */
+#iletisim .contact-big-item:hover {
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(214, 175, 102, 0.035),
+      transparent 68%
+    ) !important;
+
+  border-color: rgba(214, 175, 102, 0.13) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* İki kolon daha dengeli */
+#iletisim .contact-big-grid {
+  gap: 0 !important;
+}
+
+/* Açıklamadan içeriğe geçiş */
+#iletisim .contact-big-description {
+  margin-bottom: 24px !important;
+}
+
+/* Mobilde ayraç yataya dönsün */
+@media (max-width: 700px) {
+  #iletisim .contact-big-item:first-child {
+    border-right: 0 !important;
+    border-bottom:
+      1px solid rgba(214, 175, 102, 0.13) !important;
+  }
+
+  #iletisim .contact-big-item {
+    padding: 24px 18px !important;
+  }
+}
