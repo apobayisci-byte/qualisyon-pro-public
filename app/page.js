@@ -114,47 +114,214 @@ export default function Home() {
   const [contactLoading, setContactLoading] = useState(true);
   const [contactError, setContactError] = useState("");
 
-  useEffect(() => {
-    let active = true;
+ useEffect(() => {
+  let active = true;
 
-    async function getServers() {
-      try {
-        const response = await fetch("/api/server-status", {
+  function decodeHtmlEntities(value = "") {
+    const textarea =
+      document.createElement("textarea");
+
+    textarea.innerHTML =
+      String(value);
+
+    return textarea.value;
+  }
+
+  async function getLiveServerData(server) {
+    const host =
+      String(server.host || "").trim();
+
+    const port =
+      Number(server.port) || 27015;
+
+    if (!host) {
+      return server;
+    }
+
+    const apiUrl =
+      `https://tracker.oyunyoneticisi.com/api.php?ip=${encodeURIComponent(
+        host
+      )}&port=${encodeURIComponent(port)}&t=${Date.now()}`;
+
+    try {
+      const response =
+        await fetch(apiUrl, {
+          method: "GET",
           cache: "no-store",
         });
 
-        if (!response.ok) {
-          throw new Error("Sunucu bilgileri alınamadı.");
-        }
+      if (!response.ok) {
+        throw new Error(
+          `OYT HTTP ${response.status}`
+        );
+      }
 
-        const data = await response.json();
+      const data =
+        await response.json();
 
-        if (!active) return;
+      const oytServer =
+        data?.server;
 
-        setServers(data.servers || []);
+      const status =
+        String(
+          oytServer?.status || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      if (
+        !data?.success ||
+        !oytServer ||
+        status !== "online"
+      ) {
+        return {
+          ...server,
+          online: false,
+          map: "-",
+          players: 0,
+          playerList: [],
+        };
+      }
+
+      const playerList =
+        Array.isArray(data.players)
+          ? data.players.map(
+              (player) => ({
+                name:
+                  decodeHtmlEntities(
+                    player?.name ||
+                      "İsimsiz oyuncu"
+                  ),
+
+                score:
+                  Number.parseInt(
+                    player?.score,
+                    10
+                  ) || 0,
+
+                time:
+                  player?.time ||
+                  "00:00:00",
+              })
+            )
+          : [];
+
+      return {
+        ...server,
+
+        online: true,
+
+        name:
+          decodeHtmlEntities(
+            oytServer.name ||
+              server.name
+          ),
+
+        map:
+          oytServer.map || "-",
+
+        players:
+          Number(
+            oytServer.players
+          ) || playerList.length,
+
+        maxPlayers:
+          Number(
+            oytServer.playersmax
+          ) || 32,
+
+        ping:
+          oytServer.ping ?? null,
+
+        connect:
+          data?.links?.connect ||
+          `${host}:${port}`,
+
+        playerList,
+        oytError: null,
+      };
+    } catch (error) {
+      console.error(
+        `OYT tarayıcı sorgusu başarısız (${host}:${port}):`,
+        error
+      );
+
+      return {
+        ...server,
+        online: false,
+        map: "-",
+        players: 0,
+        playerList: [],
+      };
+    }
+  }
+
+  async function getServers() {
+    try {
+      /*
+       * Bu route yalnızca Supabase'deki sunucu
+       * listesini ve ayarlarını getiriyor.
+       */
+      const response =
+        await fetch(
+          "/api/server-status",
+          {
+            cache: "no-store",
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Sunucu bilgileri alınamadı."
+        );
+      }
+
+      const data =
+        await response.json();
+
+      const configuredServers =
+        Array.isArray(data.servers)
+          ? data.servers
+          : [];
+
+      /*
+       * Canlı oyuncu bilgileri ziyaretçinin
+       * tarayıcısından doğrudan OYT'den alınır.
+       */
+      const liveServers =
+        await Promise.all(
+          configuredServers.map(
+            getLiveServerData
+          )
+        );
+
+      if (!active) return;
+
+      setServers(liveServers);
+      setServersLoading(false);
+    } catch (error) {
+      console.error(error);
+
+      if (active) {
+        setServers([]);
         setServersLoading(false);
-      } catch (error) {
-        console.error(error);
-
-        if (active) {
-          setServers([]);
-          setServersLoading(false);
-        }
       }
     }
+  }
 
-    getServers();
+  getServers();
 
-    const interval = setInterval(
+  const interval =
+    setInterval(
       getServers,
       30000
     );
 
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, []);
+  return () => {
+    active = false;
+    clearInterval(interval);
+  };
+}, []);
 
   useEffect(() => {
     let active = true;
