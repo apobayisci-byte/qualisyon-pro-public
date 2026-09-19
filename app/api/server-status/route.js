@@ -33,7 +33,7 @@ function decodeHtmlEntities(value = "") {
     .replaceAll("&#039;", "'");
 }
 
-function createOfflineServer(server) {
+function createOfflineServer(server, oytError = null) {
   const host = String(server.host || "").trim();
   const port = Number(server.port) || 27015;
 
@@ -61,6 +61,7 @@ function createOfflineServer(server) {
     queryMethod: "oyt-api",
 
     playerList: [],
+    oytError,
   };
 }
 
@@ -68,7 +69,10 @@ async function queryOytServer(server) {
   const fallback = createOfflineServer(server);
 
   if (!fallback.host) {
-    return fallback;
+    return createOfflineServer(
+      server,
+      "Sunucu IP adresi boş."
+    );
   }
 
   const apiUrl = new URL(
@@ -81,30 +85,100 @@ async function queryOytServer(server) {
     String(fallback.port)
   );
 
-  try {
-    const response = await fetch(apiUrl, {
-      cache: "no-store",
+  // Önbelleğe takılmaması için
+  apiUrl.searchParams.set("t", String(Date.now()));
 
-      signal: AbortSignal.timeout(8000),
+  try {
+    const response = await fetch(apiUrl.toString(), {
+      method: "GET",
+      cache: "no-store",
+      redirect: "follow",
+
+      signal: AbortSignal.timeout(10000),
 
       headers: {
-        Accept: "application/json",
+        Accept:
+          "application/json, text/plain, */*",
+
+        "Accept-Language":
+          "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+
+        Referer:
+          "https://tracker.oyunyoneticisi.com/",
       },
     });
 
+    const responseText = await response.text();
+
     if (!response.ok) {
-      return fallback;
+      console.error(
+        `OYT HTTP hatası (${fallback.host}:${fallback.port}):`,
+        response.status,
+        responseText.slice(0, 300)
+      );
+
+      return createOfflineServer(
+        server,
+        `OYT HTTP ${response.status}: ${responseText
+          .slice(0, 120)
+          .replace(/\s+/g, " ")}`
+      );
     }
 
-    const data = await response.json();
+    let data;
+
+    try {
+      // Olası BOM karakterini temizler
+      const cleanText = responseText.replace(
+        /^\uFEFF/,
+        ""
+      );
+
+      data = JSON.parse(cleanText);
+    } catch (parseError) {
+      console.error(
+        `OYT JSON hatası (${fallback.host}:${fallback.port}):`,
+        responseText.slice(0, 300)
+      );
+
+      return createOfflineServer(
+        server,
+        `OYT geçersiz JSON döndürdü: ${responseText
+          .slice(0, 120)
+          .replace(/\s+/g, " ")}`
+      );
+    }
+
     const oytServer = data?.server;
 
-    if (
-      !data?.success ||
-      !oytServer ||
-      oytServer.status !== "online"
-    ) {
-      return fallback;
+    const status = String(
+      oytServer?.status || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (!data?.success || !oytServer) {
+      console.error(
+        `OYT başarısız cevap (${fallback.host}:${fallback.port}):`,
+        data
+      );
+
+      return createOfflineServer(
+        server,
+        data?.message ||
+          data?.error ||
+          "OYT success=false veya server verisi yok."
+      );
+    }
+
+    if (status !== "online") {
+      return createOfflineServer(
+        server,
+        `OYT sunucu durumu: ${status || "boş"}`
+      );
     }
 
     const playerList = Array.isArray(data.players)
@@ -151,14 +225,24 @@ async function queryOytServer(server) {
       queryMethod: "oyt-api",
 
       playerList,
+      oytError: null,
     };
   } catch (error) {
+    const errorMessage =
+      error?.name === "TimeoutError"
+        ? "OYT isteği zaman aşımına uğradı."
+        : error?.message ||
+          "OYT API isteği başarısız.";
+
     console.error(
       `OYT API hatası (${fallback.host}:${fallback.port}):`,
       error
     );
 
-    return fallback;
+    return createOfflineServer(
+      server,
+      errorMessage
+    );
   }
 }
 
@@ -169,6 +253,7 @@ export async function GET() {
     if (!supabase) {
       return NextResponse.json(
         {
+          success: false,
           servers: [],
           error:
             "Supabase environment variables eksik.",
@@ -209,6 +294,7 @@ export async function GET() {
 
       return NextResponse.json(
         {
+          success: false,
           servers: [],
           error:
             "Sunucular veritabanından alınamadı.",
@@ -249,6 +335,7 @@ export async function GET() {
 
     return NextResponse.json(
       {
+        success: false,
         servers: [],
 
         error:
