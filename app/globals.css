@@ -1299,6 +1299,7 @@ button, input { font: inherit; }
 }
 
 
+
 /* ÇOK DAR TELEFONLAR */
 
 @media (max-width: 400px) {
@@ -3912,5 +3913,101 @@ button, input { font: inherit; }
   .servers-section .server-panel-actions a {
     min-height: 38px !important;
     box-sizing: border-box !important;
+  }
+}
+
+
+/* YÖNETİM KARTLARI - TEK VE TEMİZ MASAÜSTÜ DÜZENİ */
+@media (min-width: 1200px) {
+  .management-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 15px !important;
+  }
+
+  .management-card {
+    min-height: 220px !important;
+    padding: 22px !important;
+    border-radius: 15px !important;
+  }
+
+  .management-card-number {
+    top: 15px !important;
+    right: 17px !important;
+    font-size: 43px !important;
+  }
+
+  .management-avatar-box {
+    width: 66px !important;
+    height: 66px !important;
+    margin-bottom: 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .management-avatar-box img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .management-role-pill {
+    min-height: 24px !important;
+    width: fit-content !important;
+    margin: 0 0 12px !important;
+    padding: 4px 11px !important;
+    font-size: 9px !important;
+  }
+
+  .management-name {
+    margin: 0 0 4px !important;
+    overflow: hidden !important;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .management-contact-row {
+    min-height: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    letter-spacing: 0.4px !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .management-contact-row span,
+  .management-contact-row a {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+  }
+
+  .management-card-bottom {
+    left: 22px !important;
+    right: 22px !important;
+    bottom: 18px !important;
+    padding-top: 10px !important;
+    font-size: 8px !important;
+  }
+
+  .management-shield {
+    width: 15px !important;
+    height: 15px !important;
+  }
+}
+
+/* ORTA EKRANLARDA MEVCUT 4 SÜTUN DÜZENİNİ KORU */
+@media (min-width: 901px) and (max-width: 1199px) {
+  .management-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .management-card {
+    min-height: 195px !important;
+    padding: 18px !important;
   }
 }

@@ -81,7 +81,7 @@ export default function Home() {
   const [managementItems, setManagementItems] = useState([]);
   const [managementLoading, setManagementLoading] = useState(true);
   const [managementError, setManagementError] = useState("");
-  const [visibleManagementCount, setVisibleManagementCount] = useState(9);
+  const [visibleManagementCount, setVisibleManagementCount] = useState(10);
 
   const [rules, setRules] = useState([]);
   const [rulesLoading, setRulesLoading] = useState(true);
@@ -558,7 +558,7 @@ export default function Home() {
       activeSection !==
       "yonetim"
     ) {
-      setVisibleManagementCount(9);
+      setVisibleManagementCount(10);
     }
 
     if (
