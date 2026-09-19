@@ -3557,3 +3557,360 @@ button, input { font: inherit; }
       1px solid rgba(214, 175, 102, 0.12) !important;
   }
 }
+
+/* SUNUCU KARTLARI + OYUNCU LİSTESİ YATAY DÜZEN */
+
+.servers-section .servers-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: 100%;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.servers-section .server-panel-card {
+  display: grid !important;
+  grid-template-columns:
+    minmax(0, 1.1fr)
+    minmax(340px, 0.9fr) !important;
+  grid-template-rows: auto auto auto;
+  column-gap: 25px;
+  width: 100%;
+  min-height: 300px;
+}
+
+/* Sunucu başlığı */
+
+.servers-section .server-panel-card > .server-panel-top {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* IP, harita, oyuncular ve tür */
+
+.servers-section .server-panel-card > .server-panel-stats {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* Bağlanma butonları */
+
+.servers-section .server-panel-card > .server-panel-actions {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: end;
+}
+
+/* Canlı oyuncu listesi */
+
+.servers-section .server-panel-card > div:last-child {
+  grid-column: 2;
+  grid-row: 1 / 4;
+
+  min-width: 0;
+
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  padding-left: 25px;
+
+  border-top: none !important;
+  border-left: 1px solid rgba(216, 180, 93, 0.24);
+}
+
+/* Oyuncu listesinin kendisi */
+
+.servers-section
+  .server-panel-card
+  > div:last-child
+  > div:last-child {
+  display: grid;
+  gap: 7px;
+
+  max-height: 245px;
+  overflow-y: auto;
+
+  padding-right: 5px;
+}
+
+/* Oyuncu satırlarını küçült */
+
+.servers-section
+  .server-panel-card
+  > div:last-child
+  > div:last-child
+  > div {
+  padding: 8px 9px !important;
+  font-size: 12px !important;
+}
+
+/* Kaydırma çubuğu */
+
+.servers-section
+  .server-panel-card
+  > div:last-child
+  > div:last-child::-webkit-scrollbar {
+  width: 5px;
+}
+
+.servers-section
+  .server-panel-card
+  > div:last-child
+  > div:last-child::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.servers-section
+  .server-panel-card
+  > div:last-child
+  > div:last-child::-webkit-scrollbar-thumb {
+  background: rgba(216, 180, 93, 0.55);
+  border-radius: 10px;
+}
+
+/* Tablet ve telefon */
+
+@media (max-width: 900px) {
+  .servers-section .server-panel-card {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto;
+  }
+
+  .servers-section .server-panel-card > .server-panel-top,
+  .servers-section .server-panel-card > .server-panel-stats,
+  .servers-section .server-panel-card > .server-panel-actions,
+  .servers-section .server-panel-card > div:last-child {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .servers-section .server-panel-card > div:last-child {
+    margin-top: 18px !important;
+    padding-top: 16px !important;
+    padding-left: 0;
+
+    border-left: none;
+    border-top:
+      1px solid
+      rgba(216, 180, 93, 0.24) !important;
+  }
+}
+
+/* SUNUCULAR BÖLÜMÜNÜ EKRANA SIĞDIRMA */
+
+.servers-section .servers-section-content {
+  justify-content: flex-start !important;
+  padding-top: 95px !important;
+  padding-bottom: 20px !important;
+}
+
+.servers-section .section-topline {
+  margin-bottom: 7px !important;
+}
+
+.servers-section .section-title {
+  margin-top: 0 !important;
+  margin-bottom: 22px !important;
+  font-size: clamp(42px, 4.5vw, 68px) !important;
+  line-height: 1 !important;
+}
+
+.servers-section .servers-grid {
+  gap: 12px !important;
+}
+
+.servers-section .server-panel-card {
+  min-height: 245px !important;
+  padding: 18px 24px !important;
+}
+
+.servers-section .server-panel-top {
+  padding-bottom: 13px !important;
+  margin-bottom: 12px !important;
+}
+
+.servers-section .server-panel-top h3 {
+  margin-top: 4px !important;
+  font-size: 18px !important;
+}
+
+.servers-section .server-panel-stats {
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+}
+
+.servers-section .server-stat {
+  padding: 10px 4px !important;
+}
+
+.servers-section .server-panel-actions {
+  margin-top: 8px !important;
+  padding-top: 12px !important;
+}
+
+.servers-section .server-panel-actions a {
+  min-height: 38px !important;
+  padding: 9px 12px !important;
+}
+
+.servers-section .server-player-column {
+  padding-left: 22px !important;
+}
+
+.servers-section .server-player-list {
+  max-height: 175px !important;
+  gap: 5px !important;
+}
+
+.servers-section .server-player-row {
+  padding: 6px 8px !important;
+  min-height: 30px !important;
+}
+
+/* Daha kısa ekranlarda biraz daha sıkıştır */
+
+@media (max-height: 850px) and (min-width: 901px) {
+  .servers-section .servers-section-content {
+    padding-top: 82px !important;
+  }
+
+  .servers-section .section-title {
+    margin-bottom: 14px !important;
+    font-size: 52px !important;
+  }
+
+  .servers-section .server-panel-card {
+    min-height: 220px !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .servers-section .server-player-list {
+    max-height: 145px !important;
+  }
+}
+
+/* Mobil görünümü rahat bırak */
+
+@media (max-width: 900px) {
+  .servers-section .servers-section-content {
+    padding-top: 90px !important;
+  }
+
+  .servers-section .server-panel-card {
+    min-height: auto !important;
+  }
+
+  .servers-section .server-player-list {
+    max-height: 220px !important;
+  }
+}
+
+/* SUNUCU KARTLARINI YUKARI ÇEK VE EKRANA SIĞDIR */
+
+@media (min-width: 901px) {
+  .servers-section .servers-grid {
+    transform: translateY(-95px);
+    margin-bottom: -95px;
+  }
+
+  .servers-section .server-panel-card {
+    height: 300px !important;
+    min-height: 300px !important;
+    padding: 15px 24px !important;
+    overflow: hidden;
+  }
+
+  .servers-section .server-panel-top {
+    padding-bottom: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .servers-section .server-panel-stats {
+    margin-bottom: 7px !important;
+  }
+
+  .servers-section .server-stat {
+    padding: 7px 4px !important;
+  }
+
+  .servers-section .server-panel-actions {
+    padding-top: 8px !important;
+    margin-top: 5px !important;
+  }
+
+  .servers-section .server-player-list {
+    max-height: 205px !important;
+  }
+}
+
+/* SUNUCULAR BÖLÜMÜNÜ KOMPLE CAM MENÜNÜN ALTINA TAŞI */
+
+@media (min-width: 901px) {
+  .servers-section .servers-section-content {
+    transform: translateY(-90px) !important;
+  }
+
+  /* Önceden yalnız kartlara verdiğimiz taşımayı iptal et */
+  .servers-section .servers-grid {
+    transform: none !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Mobilde taşıma uygulama */
+
+@media (max-width: 900px) {
+  .servers-section .servers-section-content {
+    transform: none !important;
+  }
+}
+
+/* SADECE SUNUCU KARTLARINI YUKARI TAŞI */
+
+@media (min-width: 901px) {
+  .servers-section .servers-grid {
+    transform: translateY(-115px) !important;
+    margin-bottom: -115px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .servers-section .servers-grid {
+    transform: none !important;
+    margin-bottom: 0 !important;
+  }
+}
+/* TAŞAN BAĞLAN BUTONLARINI DÜZELT */
+
+@media (min-width: 901px) {
+  .servers-section .server-panel-card {
+    height: auto !important;
+    min-height: 310px !important;
+    overflow: hidden !important;
+    padding-bottom: 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  .servers-section .server-main-column {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0;
+  }
+
+  .servers-section .server-panel-actions {
+    position: static !important;
+    width: 100% !important;
+
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+    padding-top: 10px !important;
+
+    transform: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .servers-section .server-panel-actions a {
+    min-height: 38px !important;
+    box-sizing: border-box !important;
+  }
+}

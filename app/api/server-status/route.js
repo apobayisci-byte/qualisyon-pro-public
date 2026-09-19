@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import dgram from "node:dgram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function getSupabase() {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const key =
     process.env.SUPABASE_SECRET_KEY ||
@@ -26,30 +24,30 @@ function getSupabase() {
   });
 }
 
-function createOfflineServer(server) {
-  const host =
-    String(server.host || "").trim();
+function decodeHtmlEntities(value = "") {
+  return String(value)
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#039;", "'");
+}
 
-  const port =
-    Number(server.port) || 27015;
+function createOfflineServer(server) {
+  const host = String(server.host || "").trim();
+  const port = Number(server.port) || 27015;
 
   return {
     id: server.id,
-
     name: server.name,
     databaseName: server.name,
 
     host,
     port,
 
-    serverType:
-      server.server_type || "public",
-
-    ts3Address:
-      server.ts3_address || "",
-
-    sortOrder:
-      server.sort_order || 0,
+    serverType: server.server_type || "public",
+    ts3Address: server.ts3_address || "",
+    sortOrder: server.sort_order || 0,
 
     online: false,
     map: "-",
@@ -60,746 +58,118 @@ function createOfflineServer(server) {
     ping: null,
 
     connect: `${host}:${port}`,
+    queryMethod: "oyt-api",
 
-    queryMethod: null,
-
-    directFound: false,
-
-    steamConfigured: Boolean(
-      process.env.STEAM_WEB_API_KEY
-    ),
-
-    steamFound: false,
-
-    steamError: null,
+    playerList: [],
   };
 }
 
-/* =========================================================
-   BUFFER OKUMA
-========================================================= */
+async function queryOytServer(server) {
+  const fallback = createOfflineServer(server);
 
-function readCString(buffer, offset) {
-  let end = offset;
-
-  while (
-    end < buffer.length &&
-    buffer[end] !== 0
-  ) {
-    end++;
+  if (!fallback.host) {
+    return fallback;
   }
 
-  return {
-    value:
-      buffer
-        .subarray(offset, end)
-        .toString("utf8"),
-
-    next:
-      end + 1,
-  };
-}
-
-/* =========================================================
-   A2S INFO PARSER
-========================================================= */
-
-function parseA2SInfo(buffer) {
-  if (
-    !buffer ||
-    buffer.length < 6
-  ) {
-    return null;
-  }
-
-  const header =
-    buffer.readInt32LE(0);
-
-  if (header !== -1) {
-    return null;
-  }
-
-  const type =
-    buffer.readUInt8(4);
-
-  /*
-   * SOURCE FORMAT
-   * 0x49 = 'I'
-   */
-  if (type === 0x49) {
-    let offset = 5;
-
-    // protocol
-    offset += 1;
-
-    const nameInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      nameInfo.next;
-
-    const mapInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      mapInfo.next;
-
-    const folderInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      folderInfo.next;
-
-    const gameInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      gameInfo.next;
-
-    if (
-      offset + 5 >
-      buffer.length
-    ) {
-      return null;
-    }
-
-    // App ID
-    offset += 2;
-
-    const players =
-      buffer.readUInt8(
-        offset++
-      );
-
-    const maxPlayers =
-      buffer.readUInt8(
-        offset++
-      );
-
-    const bots =
-      buffer.readUInt8(
-        offset++
-      );
-
-    return {
-      name:
-        nameInfo.value,
-
-      map:
-        mapInfo.value,
-
-      players,
-
-      maxPlayers,
-
-      bots,
-
-      protocol:
-        "source",
-    };
-  }
-
-  /*
-   * GOLDSOURCE FORMAT
-   * 0x6D = 'm'
-   *
-   * CS 1.6 eski query formatı.
-   */
-  if (type === 0x6d) {
-    let offset = 5;
-
-    const addressInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      addressInfo.next;
-
-    const nameInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      nameInfo.next;
-
-    const mapInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      mapInfo.next;
-
-    const folderInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      folderInfo.next;
-
-    const gameInfo =
-      readCString(
-        buffer,
-        offset
-      );
-
-    offset =
-      gameInfo.next;
-
-    if (
-      offset + 2 >
-      buffer.length
-    ) {
-      return null;
-    }
-
-    const players =
-      buffer.readUInt8(
-        offset++
-      );
-
-    const maxPlayers =
-      buffer.readUInt8(
-        offset++
-      );
-
-    return {
-      address:
-        addressInfo.value,
-
-      name:
-        nameInfo.value,
-
-      map:
-        mapInfo.value,
-
-      players,
-
-      maxPlayers,
-
-      protocol:
-        "goldsource",
-    };
-  }
-
-  return null;
-}
-
-/* =========================================================
-   DIRECT UDP A2S
-========================================================= */
-
-function directA2SQuery(
-  host,
-  port
-) {
-  return new Promise(
-    (resolve) => {
-      const socket =
-        dgram.createSocket(
-          "udp4"
-        );
-
-      let finished = false;
-
-      const start =
-        Date.now();
-
-      function finish(
-        result
-      ) {
-        if (finished) {
-          return;
-        }
-
-        finished = true;
-
-        clearTimeout(timeout);
-
-        try {
-          socket.close();
-        } catch {}
-
-        resolve(result);
-      }
-
-      const timeout =
-        setTimeout(() => {
-          finish({
-            success: false,
-
-            error:
-              "A2S zaman aşımı.",
-          });
-        }, 2500);
-
-      socket.on(
-        "error",
-        (error) => {
-          finish({
-            success: false,
-
-            error:
-              error?.message ||
-              "UDP sorgu hatası.",
-          });
-        }
-      );
-
-      socket.on(
-        "message",
-        (message) => {
-          /*
-           * CHALLENGE RESPONSE
-           * FF FF FF FF 41 + challenge
-           */
-          if (
-            message.length >= 9 &&
-            message.readInt32LE(
-              0
-            ) === -1 &&
-            message.readUInt8(
-              4
-            ) === 0x41
-          ) {
-            const challenge =
-              message.subarray(
-                5,
-                9
-              );
-
-            const prefix =
-              Buffer.from([
-                0xff,
-                0xff,
-                0xff,
-                0xff,
-              ]);
-
-            const query =
-              Buffer.from(
-                "TSource Engine Query\0",
-                "binary"
-              );
-
-            const packet =
-              Buffer.concat([
-                prefix,
-                query,
-                challenge,
-              ]);
-
-            socket.send(
-              packet,
-              port,
-              host
-            );
-
-            return;
-          }
-
-          const parsed =
-            parseA2SInfo(
-              message
-            );
-
-          if (!parsed) {
-            finish({
-              success: false,
-
-              error:
-                "A2S cevabı okunamadı.",
-            });
-
-            return;
-          }
-
-          finish({
-            success: true,
-
-            ping:
-              Date.now() -
-              start,
-
-            data:
-              parsed,
-          });
-        }
-      );
-
-      /*
-       * A2S_INFO
-       */
-      const packet =
-        Buffer.concat([
-          Buffer.from([
-            0xff,
-            0xff,
-            0xff,
-            0xff,
-          ]),
-
-          Buffer.from(
-            "TSource Engine Query\0",
-            "binary"
-          ),
-        ]);
-
-      socket.send(
-        packet,
-        port,
-        host
-      );
-    }
+  const apiUrl = new URL(
+    "https://tracker.oyunyoneticisi.com/api.php"
   );
-}
 
-/* =========================================================
-   STEAM HTTP FALLBACK
-========================================================= */
-
-async function fetchSteam(
-  apiKey,
-  filter
-) {
-  const url =
-    "https://api.steampowered.com/" +
-    "IGameServersService/" +
-    "GetServerList/v1/" +
-    `?key=${encodeURIComponent(apiKey)}` +
-    `&filter=${encodeURIComponent(filter)}` +
-    "&limit=50";
-
-  const controller =
-    new AbortController();
-
-  const timeout =
-    setTimeout(() => {
-      controller.abort();
-    }, 6000);
+  apiUrl.searchParams.set("ip", fallback.host);
+  apiUrl.searchParams.set(
+    "port",
+    String(fallback.port)
+  );
 
   try {
-    const response =
-      await fetch(url, {
-        cache: "no-store",
+    const response = await fetch(apiUrl, {
+      cache: "no-store",
 
-        signal:
-          controller.signal,
-      });
+      signal: AbortSignal.timeout(8000),
 
-    clearTimeout(timeout);
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
     if (!response.ok) {
-      return {
-        servers: [],
-
-        error:
-          `HTTP ${response.status}`,
-      };
+      return fallback;
     }
 
-    const raw =
-      await response.text();
-
-    if (!raw.trim()) {
-      return {
-        servers: [],
-
-        error:
-          "Steam boş cevap döndürdü.",
-      };
-    }
-
-    const data =
-      JSON.parse(raw);
-
-    return {
-      servers:
-        data?.response?.servers ||
-        [],
-
-      error: null,
-    };
-  } catch (error) {
-    clearTimeout(timeout);
-
-    return {
-      servers: [],
-
-      error:
-        error?.message ||
-        "Steam sorgu hatası.",
-    };
-  }
-}
-
-async function querySteam(
-  server,
-  fallback
-) {
-  const apiKey =
-    process.env.STEAM_WEB_API_KEY;
-
-  if (!apiKey) {
-    return {
-      ...fallback,
-
-      steamError:
-        "STEAM_WEB_API_KEY bulunamadı.",
-    };
-  }
-
-  const address =
-    `${fallback.host}:${fallback.port}`;
-
-  const filters = [
-    `\\addr\\${address}`,
-    `\\gameaddr\\${address}`,
-    `\\addr\\${fallback.host}`,
-  ];
-
-  let lastError = null;
-
-  for (
-    const filter
-    of filters
-  ) {
-    const result =
-      await fetchSteam(
-        apiKey,
-        filter
-      );
-
-    if (result.error) {
-      lastError =
-        result.error;
-    }
+    const data = await response.json();
+    const oytServer = data?.server;
 
     if (
-      !result.servers ||
-      result.servers.length ===
-        0
+      !data?.success ||
+      !oytServer ||
+      oytServer.status !== "online"
     ) {
-      continue;
+      return fallback;
     }
 
-    const live =
-      result.servers.find(
-        (item) => {
-          const addr =
-            String(
-              item?.addr ||
-                ""
-            ).trim();
+    const playerList = Array.isArray(data.players)
+      ? data.players.map((player) => ({
+          name: decodeHtmlEntities(
+            player?.name || "İsimsiz oyuncu"
+          ),
 
-          return (
-            addr ===
-              address ||
-            addr.startsWith(
-              `${fallback.host}:`
-            )
-          );
-        }
-      ) ||
-      result.servers[0];
+          score:
+            Number.parseInt(
+              player?.score,
+              10
+            ) || 0,
 
-    if (!live) {
-      continue;
-    }
-
-    const players =
-      Number(
-        live.players
-      );
-
-    const maxPlayers =
-      Number(
-        live.max_players
-      );
+          time:
+            player?.time || "00:00:00",
+        }))
+      : [];
 
     return {
       ...fallback,
 
       online: true,
 
-      name:
-        live.name ||
-        server.name,
+      name: decodeHtmlEntities(
+        oytServer.name || server.name
+      ),
 
-      map:
-        live.map ||
-        "-",
+      map: oytServer.map || "-",
 
       players:
-        Number.isFinite(
-          players
-        )
-          ? players
-          : 0,
+        Number(oytServer.players) ||
+        playerList.length,
 
       maxPlayers:
-        Number.isFinite(
-          maxPlayers
-        )
-          ? maxPlayers
-          : 32,
+        Number(oytServer.playersmax) || 32,
+
+      ping: oytServer.ping ?? null,
 
       connect:
-        address,
+        data?.links?.connect ||
+        `${fallback.host}:${fallback.port}`,
 
-      queryMethod:
-        "steam",
+      queryMethod: "oyt-api",
 
-      steamConfigured:
-        true,
-
-      steamFound:
-        true,
-
-      steamError:
-        null,
+      playerList,
     };
-  }
-
-  return {
-    ...fallback,
-
-    steamConfigured:
-      true,
-
-    steamFound:
-      false,
-
-    steamError:
-      lastError ||
-      `Steam listesinde bulunamadı: ${address}`,
-  };
-}
-
-/* =========================================================
-   ANA SERVER QUERY
-========================================================= */
-
-async function queryServer(
-  server
-) {
-  const fallback =
-    createOfflineServer(
-      server
+  } catch (error) {
+    console.error(
+      `OYT API hatası (${fallback.host}:${fallback.port}):`,
+      error
     );
 
-  /*
-   * Önce doğrudan sunucuya
-   * A2S_INFO atıyoruz.
-   */
-  try {
-    const direct =
-      await directA2SQuery(
-        fallback.host,
-        fallback.port
-      );
-
-    if (
-      direct.success &&
-      direct.data
-    ) {
-      return {
-        ...fallback,
-
-        online: true,
-
-        name:
-          direct.data.name ||
-          server.name,
-
-        map:
-          direct.data.map ||
-          "-",
-
-        players:
-          direct.data.players ??
-          0,
-
-        maxPlayers:
-          direct.data
-            .maxPlayers ??
-          32,
-
-        ping:
-          direct.ping ??
-          null,
-
-        connect:
-          `${fallback.host}:${fallback.port}`,
-
-        queryMethod:
-          "a2s",
-
-        directFound:
-          true,
-
-        directProtocol:
-          direct.data
-            .protocol ||
-          null,
-
-        directError:
-          null,
-      };
-    }
-
-    fallback.directError =
-      direct.error ||
-      "A2S sorgusu başarısız.";
-  } catch (error) {
-    fallback.directError =
-      error?.message ||
-      "A2S sorgusu başarısız.";
+    return fallback;
   }
-
-  /*
-   * Direct sorgu cevap vermezse
-   * Steam API fallback.
-   */
-  return querySteam(
-    server,
-    fallback
-  );
 }
-
-/* =========================================================
-   API
-========================================================= */
 
 export async function GET() {
   try {
-    const supabase =
-      getSupabase();
+    const supabase = getSupabase();
 
     if (!supabase) {
       return NextResponse.json(
         {
           servers: [],
-
           error:
             "Supabase environment variables eksik.",
         },
@@ -809,46 +179,37 @@ export async function GET() {
       );
     }
 
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from("servers")
-        .select(
-          [
-            "id",
-            "name",
-            "host",
-            "port",
-            "server_type",
-            "ts3_address",
-            "sort_order",
-            "is_active",
-          ].join(",")
-        )
-        .eq(
-          "is_active",
-          true
-        )
-        .order(
-          "sort_order",
-          {
-            ascending: true,
-          }
-        )
-        .order(
+    const { data, error } = await supabase
+      .from("servers")
+      .select(
+        [
           "id",
-          {
-            ascending: true,
-          }
-        );
+          "name",
+          "host",
+          "port",
+          "server_type",
+          "ts3_address",
+          "sort_order",
+          "is_active",
+        ].join(",")
+      )
+      .eq("is_active", true)
+      .order("sort_order", {
+        ascending: true,
+      })
+      .order("id", {
+        ascending: true,
+      });
 
     if (error) {
+      console.error(
+        "Sunucular alınamadı:",
+        error
+      );
+
       return NextResponse.json(
         {
           servers: [],
-
           error:
             "Sunucular veritabanından alınamadı.",
         },
@@ -858,30 +219,22 @@ export async function GET() {
       );
     }
 
-    const servers =
-      await Promise.all(
-        (data || []).map(
-          queryServer
-        )
-      );
+    const servers = await Promise.all(
+      (data || []).map(queryOytServer)
+    );
 
     return NextResponse.json(
       {
+        success: true,
+        updatedAt: new Date().toISOString(),
         servers,
-
-        steamConfigured:
-          Boolean(
-            process.env
-              .STEAM_WEB_API_KEY
-          ),
       },
       {
         headers: {
           "Cache-Control":
             "no-store, no-cache, must-revalidate",
 
-          "CDN-Cache-Control":
-            "no-store",
+          "CDN-Cache-Control": "no-store",
 
           "Vercel-CDN-Cache-Control":
             "no-store",

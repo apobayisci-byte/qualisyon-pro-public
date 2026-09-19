@@ -123,6 +123,10 @@ export default function Home() {
           cache: "no-store",
         });
 
+        if (!response.ok) {
+          throw new Error("Sunucu bilgileri alınamadı.");
+        }
+
         const data = await response.json();
 
         if (!active) return;
@@ -143,7 +147,7 @@ export default function Home() {
 
     const interval = setInterval(
       getServers,
-      180000
+      30000
     );
 
     return () => {
@@ -1012,6 +1016,74 @@ export default function Home() {
                         >
                           TS3&apos;E BAĞLAN
                         </a>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "18px",
+                        paddingTop: "16px",
+                        borderTop: "1px solid rgba(216, 180, 93, 0.22)",
+                      }}
+                    >
+                      <small
+                        style={{
+                          display: "block",
+                          marginBottom: "10px",
+                          color: "#d8b45d",
+                          letterSpacing: "1.2px",
+                        }}
+                      >
+                        CANLI OYUNCU LİSTESİ
+                      </small>
+
+                      {!server.online ? (
+                        <div style={{ color: "#aaa", fontSize: "14px" }}>
+                          Sunucu şu anda kapalı.
+                        </div>
+                      ) : !server.playerList || server.playerList.length === 0 ? (
+                        <div style={{ color: "#aaa", fontSize: "14px" }}>
+                          Sunucuda şu anda oyuncu bulunmuyor.
+                        </div>
+                      ) : (
+                        <div style={{ display: "grid", gap: "7px" }}>
+                          {server.playerList.map((player, playerIndex) => (
+                            <div
+                              key={`${server.id}-${playerIndex}-${player.name}`}
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "34px minmax(0, 1fr) 70px 82px",
+                                gap: "8px",
+                                alignItems: "center",
+                                padding: "9px 10px",
+                                borderRadius: "6px",
+                                background: "rgba(255,255,255,0.035)",
+                                color: "#ddd",
+                                fontSize: "13px",
+                              }}
+                            >
+                              <span style={{ color: "#d8b45d" }}>
+                                {playerIndex + 1}.
+                              </span>
+                              <strong
+                                style={{
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                                title={player.name}
+                              >
+                                {player.name}
+                              </strong>
+                              <span style={{ textAlign: "right" }}>
+                                {player.score} skor
+                              </span>
+                              <span style={{ textAlign: "right", color: "#aaa" }}>
+                                {player.time}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </article>
