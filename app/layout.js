@@ -13,12 +13,33 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "ORTAMCS | PRO PUBLIC",
+
   description:
-    "ORTAMCS Pro Public - Counter-Strike 1.6 sunucuları, TeamSpeak 3 ve topluluk platformu.",
+    "OrtamCS CS 1.6 Pro Public resmi web sitesi. Sunucu bilgileri, yönetim, galeri, dosyalar ve iletişim.",
+
+  keywords: [
+    "OrtamPro",
+    "Ortam Pro",
+    "OrtamCS",
+    "Ortam CS",
+    "CS 1.6",
+    "CS 1.6 Pro Public",
+    "Pro Public",
+    "Counter Strike 1.6",
+    "Counter-Strike 1.6",
+  ],
+
   icons: {
     icon: "/test.jpg",
     shortcut: "/test.jpg",
     apple: "/test.jpg",
+  },
+
+  openGraph: {
+    title: "ORTAMCS | PRO PUBLIC",
+    description:
+      "OrtamCS CS 1.6 Pro Public resmi web sitesi. Sunucu bilgileri, yönetim, galeri, dosyalar ve iletişim.",
+    type: "website",
   },
 };
 
