@@ -3283,7 +3283,7 @@ export default function Home() {
 
                     <small>SUNUCU TÜRÜ</small>
 
-                    <strong>TEAMSPEAK 3</strong>
+                    <strong>Teamspeak 3</strong>
 
                   </div>
 
