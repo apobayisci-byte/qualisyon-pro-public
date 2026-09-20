@@ -3646,3 +3646,112 @@ button, input { font: inherit; }
     margin-bottom: 28px;
   }
 }
+
+
+/* =========================================================
+   ILETISIM - FINAL 3 KOLON OVERRIDE
+   Telefon | TeamSpeak 3 | Instagram
+   Bu blok dosyanin EN SONUNDA kalmalidir.
+   ========================================================= */
+@media (min-width: 901px) {
+  #iletisim .contact-big-card {
+    width: min(1050px, 100%) !important;
+    min-height: auto !important;
+    padding: 30px 22px 24px !important;
+  }
+
+  #iletisim .contact-big-description {
+    width: 100% !important;
+    margin: 0 0 24px !important;
+    padding: 0 2px 22px !important;
+    text-align: left !important;
+  }
+
+  #iletisim .contact-big-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+  }
+
+  #iletisim .contact-big-item {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 165px !important;
+    padding: 22px 24px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  #iletisim .contact-big-item:nth-child(1),
+  #iletisim .contact-big-item:nth-child(2) {
+    border-right: 1px solid rgba(227, 38, 38, 0.12) !important;
+  }
+
+  #iletisim .contact-big-item:nth-child(3) {
+    border-right: 0 !important;
+  }
+
+  #iletisim .contact-big-item small {
+    margin-bottom: 14px !important;
+  }
+
+  #iletisim .contact-big-item strong {
+    width: 100% !important;
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    line-height: 1.35 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #iletisim .contact-big-action,
+  #iletisim .contact-big-static {
+    margin-top: auto !important;
+  }
+
+  #iletisim .contact-big-action {
+    min-width: 120px !important;
+    min-height: 40px !important;
+    padding: 0 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 701px) {
+  #iletisim .contact-big-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+  }
+
+  #iletisim .contact-big-item {
+    min-height: 150px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  #iletisim .contact-big-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #iletisim .contact-big-item {
+    border-right: 0 !important;
+  }
+
+  #iletisim .contact-big-item:not(:last-child) {
+    border-bottom: 1px solid rgba(227, 38, 38, 0.12) !important;
+  }
+}

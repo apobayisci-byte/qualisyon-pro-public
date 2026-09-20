@@ -3793,7 +3793,7 @@ export default function Home() {
 
                                 rel="noreferrer"
 
-                                title="Instagram"
+                                title="cs8ailesi"
 
                               >
 
@@ -4939,11 +4939,11 @@ export default function Home() {
 
                     <div className="contact-big-item">
 
-                      <small>DISCORD</small>
+                      <small>INSTAGRAM</small>
 
                       <strong>
 
-                        {contactSettings.discord}
+                        cs8ailesi
 
                       </strong>
 
@@ -4965,7 +4965,7 @@ export default function Home() {
 
                         >
 
-                          DISCORD&apos;A GİT
+                          INSTAGRAM&apos;A GİT
 
                         </a>
 
@@ -4973,7 +4973,7 @@ export default function Home() {
 
                         <span className="contact-big-static">
 
-                          Kullanıcı adı / davet bilgisi
+                          Instagram hesabı
 
                         </span>
 
@@ -5351,11 +5351,11 @@ export default function Home() {
 
                       rel="noreferrer"
 
-                      title="Discord"
+                      title="Instagram"
 
                     >
 
-                      DISCORD
+                      INSTAGRAM
 
                     </a>
 

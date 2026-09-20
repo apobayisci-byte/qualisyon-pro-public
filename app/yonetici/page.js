@@ -6780,13 +6780,13 @@ placeholder="Örn: +90 555 555 55 55"
 
 <span>
 
-DISCORD
+INSTAGRAM
 
 </span>
 
 <input
 
-type="text"
+type="url"
 
 value={contactDiscord}
 
@@ -6800,7 +6800,7 @@ event.target.value
 
 }
 
-placeholder="Kullanıcı adı veya https://discord.gg/..."
+placeholder="https://instagram.com/kullaniciadi"
 
 />
 
