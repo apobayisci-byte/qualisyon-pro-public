@@ -3,7 +3,7 @@
   subTitle: "PRO PUBLIC",
   slogan: "AYNI OYUN, AYNI REKABET.",
 
-  logo: "/ortamcs.jpg",
+  logo: "/test.jpg",
 
   footerDescription:
     "Counter-Strike 1.6 topluluğu. Aynı oyun, aynı rekabet.",
