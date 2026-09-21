@@ -3755,3 +3755,700 @@ button, input { font: inherit; }
     border-bottom: 1px solid rgba(227, 38, 38, 0.12) !important;
   }
 }
+
+/* =========================================================
+   ORTAMCS - MOBILE SIDE MENU
+   Masaustu gorunumu degismez. Sadece 900px ve altinda aktif.
+   ========================================================= */
+.mobile-menu-toggle,
+.mobile-menu-overlay,
+.mobile-side-menu {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Masaustu navigasyonu sadece mobilde gizlenir. */
+  .navbar {
+    height: 72px;
+  }
+
+  .navbar-inner {
+    padding: 0 16px;
+    justify-content: flex-start;
+  }
+
+  /* Mobilde menu tusu, sol ustteki logo + ORTAMCS yazisinin solunda durur. */
+  .mobile-menu-toggle {
+    margin-right: 10px;
+  }
+
+  .navbar .brand {
+    margin-right: auto;
+  }
+
+  .nav-links {
+    display: none !important;
+  }
+
+  .brand-logo-image {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-text strong {
+    font-size: 15px;
+    letter-spacing: 1.6px;
+  }
+
+  .brand-text span {
+    font-size: 8px;
+    letter-spacing: 2.7px;
+  }
+
+  .mobile-menu-toggle {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-shrink: 0;
+    color: #f2eee6;
+    background: rgba(8, 8, 8, 0.72);
+    border: 1px solid rgba(242, 238, 230, 0.12);
+    border-radius: 9px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 104;
+  }
+
+  .mobile-menu-toggle span {
+    width: 19px;
+    height: 2px;
+    display: block;
+    background: #ece8df;
+    border-radius: 99px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+
+  .mobile-menu-toggle.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .mobile-menu-toggle.open span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-toggle.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 198;
+    display: block;
+    background: rgba(0, 0, 0, 0.66);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  .mobile-menu-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mobile-side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 199;
+    width: min(82vw, 330px);
+    height: 100dvh;
+    padding: calc(26px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background:
+      linear-gradient(180deg, rgba(12, 12, 12, 0.98), rgba(5, 5, 5, 0.99)),
+      url("/qualisyon-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    border-right: 1px solid rgba(227, 38, 38, 0.2);
+    box-shadow: 24px 0 70px rgba(0, 0, 0, 0.48);
+    transform: translateX(-104%);
+    visibility: hidden;
+    transition: transform 0.3s ease, visibility 0.3s ease;
+  }
+
+  .mobile-side-menu.open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .mobile-side-menu-head {
+    min-height: 62px;
+    padding-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(242, 238, 230, 0.08);
+  }
+
+  .mobile-side-brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .mobile-side-brand img {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    flex-shrink: 0;
+    object-fit: contain;
+    overflow: visible;
+    filter: none;
+  }
+
+  .mobile-side-brand div {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mobile-side-brand strong {
+    overflow: hidden;
+    color: #e32626;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-side-brand span {
+    overflow: hidden;
+    color: #777;
+    font-size: 7px;
+    letter-spacing: 2.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-side-close {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dedad2;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .mobile-side-nav {
+    padding: 18px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .mobile-side-nav a {
+    min-height: 48px;
+    padding: 0 13px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    color: #b9b6b0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .mobile-side-nav a.active {
+    color: #f1ede5;
+    background: rgba(227, 38, 38, 0.08);
+    border-color: rgba(227, 38, 38, 0.18);
+  }
+
+  .mobile-side-nav-number {
+    width: 24px;
+    flex-shrink: 0;
+    color: rgba(227, 38, 38, 0.72);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+
+  .mobile-side-menu-footer {
+    margin-top: auto;
+    padding: 16px 12px 2px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    color: #5f5f5f;
+    border-top: 1px solid rgba(242, 238, 230, 0.07);
+  }
+
+  .mobile-side-menu-footer span {
+    color: #777;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+
+  .mobile-side-menu-footer small {
+    font-size: 7px;
+    letter-spacing: 1.5px;
+  }
+
+  /* Sabit navbar yuksekligi mobilde 72px oldugu icin ilk alan dengelenir. */
+  .hero {
+    padding-top: 72px;
+  }
+}
+
+@media (max-width: 420px) {
+  .navbar-inner {
+    padding: 0 13px;
+  }
+
+  .brand {
+    gap: 9px;
+  }
+
+  .brand-text strong {
+    font-size: 13px;
+  }
+
+  .brand-text span {
+    font-size: 7px;
+    letter-spacing: 2px;
+  }
+
+  .mobile-side-menu {
+    width: min(86vw, 315px);
+  }
+}
+
+@media (max-width: 900px) {
+  .site-page {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.50),
+        rgba(0, 0, 0, 0.66)
+      ),
+      linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.26),
+        rgba(0, 0, 0, 0.12) 40%,
+        rgba(0, 0, 0, 0.12) 60%,
+        rgba(0, 0, 0, 0.26)
+      ),
+      url("/qualisyon-mobile-bg.png") !important;
+
+    background-size: cover !important;
+    background-position: center top !important;
+    background-repeat: no-repeat !important;
+    background-attachment: scroll !important;
+  }
+
+  .hero-overlay {
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .section-overlay {
+    background: rgba(0, 0, 0, 0.32);
+  }
+}
+
+/* =========================================================
+   MOBİL ARKA PLAN - FINAL
+   Sadece 900px ve altında çalışır. PC görünümüne dokunmaz.
+   Görsel: /public/qualisyon-mobile-bg.png
+========================================================= */
+@media screen and (max-width: 900px) {
+  html {
+    background: #050505 !important;
+  }
+
+  body {
+    position: relative;
+    isolation: isolate;
+    background: transparent !important;
+    overflow-x: hidden;
+  }
+
+  /* Görseli sayfanın yüksekliğine göre değil, telefon ekranına göre sabitler.
+     Böylece uzun sayfada background-size: cover yüzünden kaybolmaz. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+
+    background-image: url("/qualisyon-mobile-bg.png");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+
+    /* Mobil görselde kırmızıyı biraz sakinleştirir. */
+    filter: brightness(0.62) saturate(0.78);
+    transform: translateZ(0);
+  }
+
+  /* İçeriğin okunaklı kalması için hafif koyu katman. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.20) 0%,
+        rgba(0, 0, 0, 0.32) 55%,
+        rgba(0, 0, 0, 0.42) 100%
+      );
+  }
+
+  /* Masaüstünde kullanılan yatay background mobilde kapatılır. */
+  .site-page {
+    position: relative;
+    background: transparent !important;
+    background-image: none !important;
+  }
+
+  .hero,
+  .content-section,
+  .site-section {
+    background-color: transparent !important;
+  }
+
+  .hero-overlay {
+    background: rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .section-overlay {
+    background: rgba(0, 0, 0, 0.14) !important;
+  }
+}
+
+/* =========================================================
+   ORTAMCS - DESKTOP SOL SIDEBAR
+   901px ve üstünde aktif. Mobil menü yapısına dokunmaz.
+========================================================= */
+.desktop-sidebar {
+  display: none;
+}
+
+@media screen and (min-width: 901px) {
+  :root {
+    --desktop-sidebar-width: 74px;
+    --desktop-sidebar-expanded-width: 238px;
+  }
+
+  /* Üstteki eski masaüstü navbar yerine sol sidebar kullanılır. */
+  .navbar {
+    display: none !important;
+  }
+
+  .site-page {
+    padding-left: var(--desktop-sidebar-width);
+    transition: padding-left 0.28s ease;
+  }
+
+  .site-page.desktop-sidebar-expanded {
+    padding-left: var(--desktop-sidebar-expanded-width);
+  }
+
+  .desktop-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 350;
+    width: var(--desktop-sidebar-width);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: #908d87;
+    background:
+      linear-gradient(180deg, rgba(8, 8, 8, 0.985), rgba(4, 4, 4, 0.995)),
+      url("/qualisyon-bg.jpg");
+    background-size: cover;
+    background-position: left center;
+    border-right: 1px solid rgba(227, 38, 38, 0.18);
+    box-shadow: 12px 0 36px rgba(0, 0, 0, 0.28);
+    transition: width 0.28s ease, box-shadow 0.28s ease;
+  }
+
+  .desktop-sidebar.expanded {
+    width: var(--desktop-sidebar-expanded-width);
+    box-shadow: 18px 0 48px rgba(0, 0, 0, 0.38);
+  }
+
+  .desktop-sidebar-top {
+    min-height: 142px;
+    padding: 15px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  }
+
+  .desktop-sidebar-toggle {
+    width: 48px;
+    height: 46px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-shrink: 0;
+    color: #ece8df;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 7px;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .desktop-sidebar-toggle:hover {
+    background: rgba(227, 38, 38, 0.07);
+    border-color: rgba(227, 38, 38, 0.34);
+  }
+
+  .desktop-sidebar-toggle span {
+    width: 20px;
+    height: 2px;
+    display: block;
+    background: currentColor;
+    border-radius: 99px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+
+  .desktop-sidebar-toggle.open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .desktop-sidebar-toggle.open span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .desktop-sidebar-toggle.open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .desktop-sidebar-brand {
+    width: 100%;
+    height: 52px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .desktop-sidebar-brand img {
+    width: 48px;
+    height: 48px;
+    padding: 3px;
+    flex: 0 0 48px;
+    object-fit: contain;
+    filter: none;
+  }
+
+  .desktop-sidebar-brand-text {
+    min-width: 145px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
+    transition: opacity 0.2s ease 0.02s, transform 0.24s ease;
+  }
+
+  .desktop-sidebar.expanded .desktop-sidebar-brand-text {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .desktop-sidebar-brand-text strong {
+    color: #e32626;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1.8px;
+    white-space: nowrap;
+  }
+
+  .desktop-sidebar-brand-text small {
+    color: #6f6c67;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 2.7px;
+    white-space: nowrap;
+  }
+
+  .desktop-sidebar-nav {
+    padding: 12px 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+
+  .desktop-sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .desktop-sidebar-nav a {
+    position: relative;
+    width: 100%;
+    min-height: 52px;
+    padding: 0 13px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    overflow: hidden;
+    color: #77746e;
+    background: transparent;
+    border-left: 2px solid transparent;
+    transition:
+      color 0.2s ease,
+      background 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .desktop-sidebar-nav a:hover {
+    color: #d9d5cc;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .desktop-sidebar-nav a.active {
+    color: #e32626;
+    background:
+      linear-gradient(
+        90deg,
+        rgba(227, 38, 38, 0.12),
+        rgba(227, 38, 38, 0.025)
+      );
+    border-left-color: #e32626;
+  }
+
+  .desktop-sidebar-icon-wrap {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .desktop-sidebar-icon {
+    width: 21px;
+    height: 21px;
+    display: block;
+    color: currentColor;
+    filter: drop-shadow(0 0 7px rgba(227, 38, 38, 0));
+    transition: filter 0.2s ease, transform 0.2s ease;
+  }
+
+  .desktop-sidebar-nav a:hover .desktop-sidebar-icon,
+  .desktop-sidebar-nav a.active .desktop-sidebar-icon {
+    filter: drop-shadow(0 0 7px rgba(227, 38, 38, 0.22));
+  }
+
+  .desktop-sidebar-nav a:hover .desktop-sidebar-icon {
+    transform: translateY(-1px);
+  }
+
+  .desktop-sidebar-label {
+    min-width: 135px;
+    overflow: hidden;
+    color: currentColor;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.25px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.18s ease, transform 0.24s ease;
+  }
+
+  .desktop-sidebar.expanded .desktop-sidebar-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .desktop-sidebar-footer {
+    min-height: 56px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+    color: #5e5b56;
+    border-top: 1px solid rgba(255, 255, 255, 0.055);
+  }
+
+  .desktop-sidebar-footer-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    background: #e32626;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(227, 38, 38, 0.55);
+  }
+
+  .desktop-sidebar-footer-text {
+    min-width: 110px;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .desktop-sidebar.expanded .desktop-sidebar-footer-text {
+    opacity: 1;
+  }
+}

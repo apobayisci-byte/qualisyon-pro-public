@@ -98,9 +98,108 @@ function ShieldIcon() {
 
 }
 
+
+function DesktopSidebarIcon({ name }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    className: "desktop-sidebar-icon",
+    "aria-hidden": "true",
+  };
+
+  switch (name) {
+    case "anasayfa":
+      return (
+        <svg {...common}>
+          <path
+            d="M3.5 10.3 12 3.5l8.5 6.8v9.2c0 .6-.4 1-1 1h-5.2v-6h-4.6v6H4.5c-.6 0-1-.4-1-1v-9.2Z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+
+    case "sunucular":
+      return (
+        <svg {...common}>
+          <rect x="4" y="4.5" width="16" height="5.2" rx="1.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <rect x="4" y="14.3" width="16" height="5.2" rx="1.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="7.2" cy="7.1" r="0.9" fill="currentColor" />
+          <circle cx="7.2" cy="16.9" r="0.9" fill="currentColor" />
+        </svg>
+      );
+
+    case "galeri":
+      return (
+        <svg {...common}>
+          <rect x="3.8" y="4.2" width="16.4" height="15.6" rx="1.7" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="9" cy="9" r="1.6" fill="none" stroke="currentColor" strokeWidth="1.4" />
+          <path d="m5.8 17 4.1-4 2.8 2.6 2.3-2.2 3.2 3.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+      );
+
+    case "yonetim":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M3.8 19c.4-3.3 2.3-5.2 5.2-5.2s4.8 1.9 5.2 5.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <circle cx="17.1" cy="9.2" r="2.1" fill="none" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M15.9 14.2c2.4-.2 4.1 1.3 4.5 3.9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "kurallar":
+      return (
+        <svg {...common}>
+          <path d="M7 3.8h10a2 2 0 0 1 2 2v12.4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5.8a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M8.5 8h7M8.5 12h7M8.5 16h4.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "fiyatlar":
+      return (
+        <svg {...common}>
+          <path d="M14.8 5.2c-1-.8-2.1-1.2-3.4-1.2-2.1 0-3.8 1.1-3.8 2.8 0 4.3 8.8 1.9 8.8 6.6 0 1.8-1.8 3.1-4.3 3.1-1.7 0-3.3-.6-4.5-1.7M12 2.5v19" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "dosyalar":
+      return (
+        <svg {...common}>
+          <path d="M12 3.5v11.2m0 0 4-4m-4 4-4-4M5 18v1.2c0 .7.6 1.3 1.3 1.3h11.4c.7 0 1.3-.6 1.3-1.3V18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+
+    case "destek":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M9.7 9.3a2.5 2.5 0 0 1 4.8.8c0 1.8-2.5 2.1-2.5 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <circle cx="12" cy="17.2" r="0.9" fill="currentColor" />
+        </svg>
+      );
+
+    case "iletisim":
+      return (
+        <svg {...common}>
+          <path d="M4 5.5h16v11.8c0 .8-.7 1.5-1.5 1.5h-13c-.8 0-1.5-.7-1.5-1.5V5.5Z" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="m5 7 7 5.4L19 7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+      );
+
+    default:
+      return null;
+  }
+}
+
 export default function Home() {
 
   const [activeSection, setActiveSection] = useState("anasayfa");
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
 
   const [servers, setServers] = useState([]);
 
@@ -1549,11 +1648,90 @@ export default function Home() {
 
     return (
 
-    <main className="site-page">
+    <main className={`site-page ${desktopSidebarOpen ? "desktop-sidebar-expanded" : ""}`}>
+
+      <aside
+        className={`desktop-sidebar ${desktopSidebarOpen ? "expanded" : ""}`}
+        aria-label="Ana navigasyon"
+      >
+        <div className="desktop-sidebar-top">
+          <button
+            type="button"
+            className={`desktop-sidebar-toggle ${desktopSidebarOpen ? "open" : ""}`}
+            aria-label={desktopSidebarOpen ? "Menüyü daralt" : "Menüyü genişlet"}
+            aria-expanded={desktopSidebarOpen}
+            onClick={() => setDesktopSidebarOpen((old) => !old)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <button
+            type="button"
+            className="desktop-sidebar-brand"
+            aria-label="Ana sayfaya git"
+            onClick={() => goToSection("anasayfa")}
+          >
+            <img src={siteConfig.logo} alt="" />
+            <div className="desktop-sidebar-brand-text">
+              <strong>{siteConfig.brandName}</strong>
+              <small>{siteConfig.subTitle}</small>
+            </div>
+          </button>
+        </div>
+
+        <nav className="desktop-sidebar-nav">
+          {[
+            ["anasayfa", "Ana Sayfa"],
+            ["sunucular", "Sunucular"],
+            ["galeri", "Galeri"],
+            ["yonetim", "Yönetim"],
+            ["kurallar", "Kurallar"],
+            ["fiyatlar", "Fiyatlar"],
+            ["dosyalar", "Dosyalar"],
+            ["destek", "Destek"],
+            ["iletisim", "İletişim"],
+          ].map(([id, label]) => (
+            <a
+              key={id}
+              href="/"
+              className={navClass(id)}
+              title={!desktopSidebarOpen ? label : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                goToSection(id);
+              }}
+            >
+              <span className="desktop-sidebar-icon-wrap">
+                <DesktopSidebarIcon name={id} />
+              </span>
+              <span className="desktop-sidebar-label">{label}</span>
+            </a>
+          ))}
+        </nav>
+
+        <div className="desktop-sidebar-footer">
+          <span className="desktop-sidebar-footer-dot"></span>
+          <span className="desktop-sidebar-footer-text">ORTAMCS</span>
+        </div>
+      </aside>
 
       <header className="navbar">
 
         <div className="navbar-inner">
+
+          <button
+            type="button"
+            className={`mobile-menu-toggle ${mobileMenuOpen ? "open" : ""}`}
+            aria-label={mobileMenuOpen ? "Menüyü kapat" : "Menüyü aç"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((old) => !old)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
 
           <a
 
@@ -1726,6 +1904,79 @@ export default function Home() {
         </div>
 
       </header>
+
+      <div
+        className={`mobile-menu-overlay ${mobileMenuOpen ? "open" : ""}`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden={!mobileMenuOpen}
+      ></div>
+
+      <aside
+        className={`mobile-side-menu ${mobileMenuOpen ? "open" : ""}`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div className="mobile-side-menu-head">
+          <a
+            href="/"
+            className="mobile-side-brand"
+            onClick={(event) => {
+              event.preventDefault();
+              setMobileMenuOpen(false);
+              goToSection("anasayfa");
+            }}
+          >
+            <img src={siteConfig.logo} alt="Counter-Strike" />
+            <div>
+              <strong>{siteConfig.brandName}</strong>
+              <span>{siteConfig.subTitle}</span>
+            </div>
+          </a>
+
+          <button
+            type="button"
+            className="mobile-side-close"
+            aria-label="Menüyü kapat"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            ×
+          </button>
+        </div>
+
+        <nav className="mobile-side-nav">
+          {[
+            ["anasayfa", "Ana Sayfa"],
+            ["sunucular", "Sunucular"],
+            ["galeri", "Galeri"],
+            ["yonetim", "Yönetim"],
+            ["kurallar", "Kurallar"],
+            ["fiyatlar", "Fiyatlar"],
+            ["dosyalar", "Dosyalar"],
+            ["destek", "Destek"],
+            ["iletisim", "İletişim"],
+          ].map(([id, label], index) => (
+            <a
+              key={id}
+              href="/"
+              className={navClass(id)}
+              onClick={(event) => {
+                event.preventDefault();
+                setMobileMenuOpen(false);
+                goToSection(id);
+              }}
+            >
+              <span className="mobile-side-nav-number">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <span>{label}</span>
+            </a>
+          ))}
+        </nav>
+
+        <div className="mobile-side-menu-footer">
+          <span>ORTAMCS</span>
+          <small>PRO PUBLIC</small>
+        </div>
+      </aside>
 
       <section
 
@@ -3793,7 +4044,7 @@ export default function Home() {
 
                                 rel="noreferrer"
 
-                                title="cs8ailesi"
+                                title="lca.pro"
 
                               >
 
@@ -4943,7 +5194,7 @@ export default function Home() {
 
                       <strong>
 
-                        cs8ailesi
+                        lca.pro
 
                       </strong>
 
@@ -5502,4 +5753,3 @@ export default function Home() {
   );
 
 }
-
