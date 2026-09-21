@@ -99,6 +99,64 @@ function ShieldIcon() {
 }
 
 
+
+function richTextToSafeHtml(value = "") {
+  const escaped = String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+  const allowedTags = [
+    "strong",
+    "em",
+    "u",
+    "h3",
+    "ul",
+    "ol",
+    "li",
+    "br",
+  ];
+
+  let safe = escaped;
+
+  allowedTags.forEach((tag) => {
+    safe = safe
+      .replace(
+        new RegExp(`&lt;${tag}&gt;`, "gi"),
+        `<${tag}>`
+      )
+      .replace(
+        new RegExp(`&lt;/${tag}&gt;`, "gi"),
+        `</${tag}>`
+      );
+  });
+
+  safe = safe
+    .replace(/&lt;br\s*\/?&gt;/gi, "<br>")
+    .replace(/\r\n|\r|\n/g, "<br>");
+
+  return safe;
+}
+
+function RichText({
+  value,
+  className = "",
+  as = "div",
+}) {
+  const Tag = as;
+
+  return (
+    <Tag
+      className={`rich-text-output ${className}`.trim()}
+      dangerouslySetInnerHTML={{
+        __html: richTextToSafeHtml(value),
+      }}
+    />
+  );
+}
+
 function DesktopSidebarIcon({ name }) {
   const common = {
     viewBox: "0 0 24 24",
@@ -2080,7 +2138,7 @@ export default function Home() {
                       <time>{formatAnnouncementDate(item.created_at)}</time>
                     </div>
                     <strong>{item.title}</strong>
-                    {item.description && <p>{item.description}</p>}
+                    {item.description && <RichText value={item.description} as="p" />}
                   </article>
                 ))
               )}
@@ -3114,7 +3172,7 @@ export default function Home() {
              YÖNETİM KARTLARI - SOSYAL LİNKLER
              ========================= */
           #yonetim .management-name {
-            max-width: calc(100% - 88px);
+            max-width: 100%;
             font-size: clamp(15px, 1.15vw, 19px) !important;
             line-height: 1.08 !important;
             white-space: nowrap;
@@ -3123,7 +3181,7 @@ export default function Home() {
           }
 
           #yonetim .management-contact-row {
-            max-width: calc(100% - 88px);
+            max-width: 100%;
             min-height: 18px;
             margin-top: 2px;
           }
@@ -3144,19 +3202,19 @@ export default function Home() {
 
           #yonetim .management-card-links {
             position: absolute;
-            top: 144px;
+            top: 78px;
             right: 18px;
             z-index: 4;
-            width: 76px;
+            width: 70px;
             display: flex;
             flex-direction: column;
             align-items: stretch;
-            gap: 6px;
+            gap: 5px;
           }
 
           #yonetim .management-card-links a {
-            min-height: 25px;
-            padding: 0 6px;
+            min-height: 22px;
+            padding: 0 5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3164,9 +3222,9 @@ export default function Home() {
             background: rgba(7, 7, 7, 0.56);
             border: 1px solid rgba(242, 238, 230, 0.17);
             border-radius: 5px;
-            font-size: 6.5px;
+            font-size: 6px;
             font-weight: 800;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.7px;
             transition:
               color 0.2s ease,
               border-color 0.2s ease,
@@ -4343,17 +4401,10 @@ export default function Home() {
               </div>
 
               <div className="simple-rules-scroll">
-
-                <pre>
-
-                  {
-
-                    activeRuleRecord.content
-
-                  }
-
-                </pre>
-
+                <RichText
+                  value={activeRuleRecord.content}
+                  className="simple-rules-richtext"
+                />
               </div>
 
             </article>
@@ -4469,13 +4520,11 @@ export default function Home() {
                     </div>
 
                     {item.description && (
-
-                      <p className="price-card-description">
-
-                        {item.description}
-
-                      </p>
-
+                      <RichText
+                        value={item.description}
+                        as="div"
+                        className="price-card-description"
+                      />
                     )}
 
                     {featureList.length > 0 && (
@@ -4494,7 +4543,11 @@ export default function Home() {
 
                             <span></span>
 
-                            <strong>{feature}</strong>
+                            <RichText
+                              value={feature}
+                              as="strong"
+                              className="price-card-feature-rich"
+                            />
 
                           </div>
 
@@ -4638,7 +4691,7 @@ export default function Home() {
 
                     <p className="download-card-description">
 
-                      {item.description}
+                      <RichText value={item.description} as="span" />
 
                     </p>
 
@@ -5181,7 +5234,10 @@ export default function Home() {
                 <h3>{aboutSettings.title || "ORTAMCS PRO PUBLIC"}</h3>
 
                 {aboutSettings.content && (
-                  <p>{aboutSettings.content}</p>
+                  <RichText
+                    value={aboutSettings.content}
+                    className="about-richtext"
+                  />
                 )}
 
                 <div className="about-card-footer">
@@ -5257,7 +5313,10 @@ export default function Home() {
 
                   <p className="contact-big-description">
 
-                    {contactSettings.description}
+                    <RichText
+                      value={contactSettings.description}
+                      as="span"
+                    />
 
                   </p>
 

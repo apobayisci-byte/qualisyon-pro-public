@@ -1,10 +1,261 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "../../lib/supabase";
 
 import { siteConfig } from "../../config/siteConfig";
+
+
+function richTextToSafeHtml(value = "") {
+  const escaped = String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+  const allowedTags = [
+    "strong",
+    "em",
+    "u",
+    "h3",
+    "ul",
+    "ol",
+    "li",
+    "br",
+  ];
+
+  let safe = escaped;
+
+  allowedTags.forEach((tag) => {
+    safe = safe
+      .replace(
+        new RegExp(`&lt;${tag}&gt;`, "gi"),
+        `<${tag}>`
+      )
+      .replace(
+        new RegExp(`&lt;/${tag}&gt;`, "gi"),
+        `</${tag}>`
+      );
+  });
+
+  safe = safe
+    .replace(/&lt;br\s*\/?&gt;/gi, "<br>")
+    .replace(/\r\n|\r|\n/g, "<br>");
+
+  return safe;
+}
+
+function RichTextTextarea({
+  value,
+  onChange,
+  placeholder = "",
+  rows = 6,
+  maxLength,
+  className = "",
+}) {
+  const textareaRef = useRef(null);
+
+  function replaceSelection(before, after, fallback = "metin") {
+    const element = textareaRef.current;
+    if (!element) return;
+
+    const start = element.selectionStart ?? 0;
+    const end = element.selectionEnd ?? 0;
+    const selected = value.slice(start, end) || fallback;
+    const nextValue =
+      value.slice(0, start) +
+      before +
+      selected +
+      after +
+      value.slice(end);
+
+    onChange(nextValue);
+
+    requestAnimationFrame(() => {
+      element.focus();
+      const cursorStart = start + before.length;
+      const cursorEnd = cursorStart + selected.length;
+      element.setSelectionRange(cursorStart, cursorEnd);
+    });
+  }
+
+  function insertList(ordered = false) {
+    const element = textareaRef.current;
+    if (!element) return;
+
+    const start = element.selectionStart ?? 0;
+    const end = element.selectionEnd ?? 0;
+    const selected = value.slice(start, end);
+    const lines = (selected || "Liste öğesi")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const tag = ordered ? "ol" : "ul";
+    const listHtml = `<${tag}>\n${lines
+      .map((line) => `<li>${line}</li>`)
+      .join("\n")}\n</${tag}>`;
+
+    const nextValue =
+      value.slice(0, start) +
+      listHtml +
+      value.slice(end);
+
+    onChange(nextValue);
+
+    requestAnimationFrame(() => {
+      element.focus();
+      element.setSelectionRange(
+        start,
+        start + listHtml.length
+      );
+    });
+  }
+
+  function insertBreak() {
+    const element = textareaRef.current;
+    if (!element) return;
+
+    const start = element.selectionStart ?? 0;
+    const end = element.selectionEnd ?? 0;
+    const nextValue =
+      value.slice(0, start) +
+      "<br>" +
+      value.slice(end);
+
+    onChange(nextValue);
+
+    requestAnimationFrame(() => {
+      element.focus();
+      element.setSelectionRange(
+        start + 4,
+        start + 4
+      );
+    });
+  }
+
+  return (
+    <div className={`rich-editor ${className}`.trim()}>
+      <div
+        className="rich-editor-toolbar"
+        role="toolbar"
+        aria-label="Metin biçimlendirme"
+      >
+        <button
+          type="button"
+          className="rich-editor-tool rich-editor-bold"
+          title="Kalın"
+          onClick={() =>
+            replaceSelection(
+              "<strong>",
+              "</strong>",
+              "Kalın metin"
+            )
+          }
+        >
+          B
+        </button>
+
+        <button
+          type="button"
+          className="rich-editor-tool rich-editor-italic"
+          title="İtalik"
+          onClick={() =>
+            replaceSelection(
+              "<em>",
+              "</em>",
+              "İtalik metin"
+            )
+          }
+        >
+          I
+        </button>
+
+        <button
+          type="button"
+          className="rich-editor-tool rich-editor-underline"
+          title="Altı çizili"
+          onClick={() =>
+            replaceSelection(
+              "<u>",
+              "</u>",
+              "Altı çizili metin"
+            )
+          }
+        >
+          U
+        </button>
+
+        <span className="rich-editor-separator"></span>
+
+        <button
+          type="button"
+          className="rich-editor-tool rich-editor-heading"
+          title="Ara başlık"
+          onClick={() =>
+            replaceSelection(
+              "<h3>",
+              "</h3>",
+              "Ara başlık"
+            )
+          }
+        >
+          H3
+        </button>
+
+        <button
+          type="button"
+          className="rich-editor-tool"
+          title="Madde işaretli liste"
+          onClick={() => insertList(false)}
+        >
+          •
+        </button>
+
+        <button
+          type="button"
+          className="rich-editor-tool"
+          title="Numaralı liste"
+          onClick={() => insertList(true)}
+        >
+          1.
+        </button>
+
+        <button
+          type="button"
+          className="rich-editor-tool"
+          title="Satır sonu"
+          onClick={insertBreak}
+        >
+          ↵
+        </button>
+      </div>
+
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
+        placeholder={placeholder}
+        rows={rows}
+        maxLength={maxLength}
+      />
+
+      <div className="rich-editor-preview">
+        <span>ÖNİZLEME</span>
+        <div
+          className="rich-text-output"
+          dangerouslySetInnerHTML={{
+            __html: richTextToSafeHtml(value),
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function YoneticiPage() {
 
@@ -3807,16 +4058,12 @@ required
 
 <span>AÇIKLAMA</span>
 
-<textarea
-
+<RichTextTextarea
 value={announcementDescription}
-
-onChange={(event) => setAnnouncementDescription(event.target.value)}
-
+onChange={setAnnouncementDescription}
 maxLength={220}
-
+rows={5}
 placeholder="Kısa duyuru metni"
-
 />
 
 </label>
@@ -3935,7 +4182,7 @@ className={`admin-announcement-item ${!item.is_active ? "inactive" : ""}`}
 
 <strong>{item.title}</strong>
 
-{item.description && <p>{item.description}</p>}
+{item.description && <div className="rich-text-output" dangerouslySetInnerHTML={{ __html: richTextToSafeHtml(item.description) }} />}
 
 </div>
 
@@ -5243,18 +5490,12 @@ placeholder="Otomatik"
 
 <span>AÇIKLAMA</span>
 
-<textarea
-
+<RichTextTextarea
 value={priceDescription}
-
-onChange={(event) => setPriceDescription(event.target.value)}
-
+onChange={setPriceDescription}
 placeholder="Kartın açıklaması"
-
 maxLength={1500}
-
 rows={5}
-
 />
 
 <small className="selected-file-info">
@@ -5269,16 +5510,11 @@ Uzun açıklamalar da desteklenir ve sitede otomatik satıra bölünür.
 
 <span>ÖZELLİKLER</span>
 
-<textarea
-
+<RichTextTextarea
 value={priceFeatures}
-
-onChange={(event) => setPriceFeatures(event.target.value)}
-
+onChange={setPriceFeatures}
 placeholder={"Her satıra bir özellik yaz\nÖrn: Slot garantisi\nÖzel tag\nVIP silah menüsü"}
-
 rows={7}
-
 />
 
 <small className="selected-file-info">
@@ -5407,7 +5643,11 @@ className={`admin-server-item ${
 
 <small>
 
-{item.description}
+<span
+dangerouslySetInnerHTML={{
+__html: richTextToSafeHtml(item.description)
+}}
+/>
 
 </small>
 
@@ -5617,18 +5857,12 @@ required
 
 <span>AÇIKLAMA</span>
 
-<textarea
-
+<RichTextTextarea
 value={downloadDescription}
-
-onChange={(event) => setDownloadDescription(event.target.value)}
-
+onChange={setDownloadDescription}
 placeholder="Dosya hakkında kısa açıklama"
-
 maxLength={1500}
-
 rows={5}
-
 />
 
 </label>
@@ -5751,7 +5985,11 @@ className={`admin-server-item ${
 
 <small>
 
-{item.description}
+<span
+dangerouslySetInnerHTML={{
+__html: richTextToSafeHtml(item.description)
+}}
+/>
 
 </small>
 
@@ -5941,22 +6179,12 @@ METNİ BURAYA YAPIŞTIR
 
 </span>
 
-<textarea
-
-className="simple-rules-textarea"
-
+<RichTextTextarea
+className="simple-rules-rich-editor"
 value={ruleContent}
-
-onChange={(event) =>
-
-setRuleContent(
-
-event.target.value
-
-)
-
-}
-
+onChange={setRuleContent}
+rows={14}
+placeholder="Kuralları buraya yaz veya yapıştır."
 />
 
 </label>
@@ -6967,14 +7195,11 @@ AÇIKLAMA
 
 </span>
 
-<textarea
+<RichTextTextarea
 value={aboutContent}
-onChange={(event) =>
-setAboutContent(
-event.target.value
-)
-}
+onChange={setAboutContent}
 maxLength={4000}
+rows={12}
 placeholder="Hakkımızda metnini buraya kopyalayıp yapıştırabilirsin."
 />
 
@@ -7239,24 +7464,12 @@ AÇIKLAMA
 
 </span>
 
-<textarea
-
+<RichTextTextarea
 value={contactDescription}
-
-onChange={(event) =>
-
-setContactDescription(
-
-event.target.value
-
-)
-
-}
-
+onChange={setContactDescription}
 maxLength={500}
-
+rows={6}
 placeholder="İletişim bölümünde gösterilecek kısa açıklama"
-
 />
 
 </label>
