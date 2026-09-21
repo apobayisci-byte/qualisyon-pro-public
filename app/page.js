@@ -5194,7 +5194,7 @@ export default function Home() {
 
                       <strong>
 
-                        lca.pro
+                        cs8ailesi
 
                       </strong>
 
