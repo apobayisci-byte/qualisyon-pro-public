@@ -172,6 +172,18 @@ const [contactLoading, setContactLoading] = useState(false);
 
 const [contactSaving, setContactSaving] = useState(false);
 
+const [aboutRecordId, setAboutRecordId] = useState(null);
+
+const [aboutTitle, setAboutTitle] = useState("");
+
+const [aboutContent, setAboutContent] = useState("");
+
+const [aboutIsActive, setAboutIsActive] = useState(true);
+
+const [aboutLoading, setAboutLoading] = useState(false);
+
+const [aboutSaving, setAboutSaving] = useState(false);
+
 useEffect(() => {
 
 let mounted = true;
@@ -272,6 +284,8 @@ loadDownloads();
 
 loadSupportRequests();
 
+loadAboutSettings();
+
 loadContactSettings();
 
 }, [session]);
@@ -285,6 +299,16 @@ loadSupportRequests();
 }
 
 }, [activeTab]);
+
+useEffect(() => {
+
+if (activeTab === "about" && session) {
+
+loadAboutSettings();
+
+}
+
+}, [activeTab, session]);
 
 useEffect(() => {
 
@@ -2776,6 +2800,151 @@ item.status ===
 
 ).length;
 
+async function loadAboutSettings() {
+
+setAboutLoading(true);
+
+const { data, error } =
+await supabase
+.from("about_settings")
+.select(
+"id, title, content, is_active, updated_at"
+)
+.order("id", {
+ascending: true,
+})
+.limit(1)
+.maybeSingle();
+
+if (error) {
+
+console.error(
+"ABOUT LOAD ERROR:",
+error
+);
+
+setPanelMessage(
+"Hakkımızda bilgileri alınamadı."
+);
+
+setAboutLoading(false);
+
+return;
+
+}
+
+setAboutRecordId(
+data?.id || null
+);
+
+setAboutTitle(
+data?.title || ""
+);
+
+setAboutContent(
+data?.content || ""
+);
+
+setAboutIsActive(
+data?.is_active ?? true
+);
+
+setAboutLoading(false);
+
+}
+
+async function saveAboutSettings(event) {
+
+event.preventDefault();
+
+setAboutSaving(true);
+
+setPanelMessage("");
+
+const payload = {
+
+title:
+aboutTitle.trim() ||
+null,
+
+content:
+aboutContent.trim() ||
+null,
+
+is_active:
+aboutIsActive,
+
+updated_at:
+new Date().toISOString(),
+
+};
+
+let error = null;
+
+if (aboutRecordId) {
+
+const result =
+await supabase
+.from("about_settings")
+.update(payload)
+.eq(
+"id",
+aboutRecordId
+);
+
+error =
+result.error;
+
+} else {
+
+const result =
+await supabase
+.from("about_settings")
+.insert(payload)
+.select("id")
+.single();
+
+error =
+result.error;
+
+if (
+!error &&
+result.data?.id
+) {
+
+setAboutRecordId(
+result.data.id
+);
+
+}
+
+}
+
+if (error) {
+
+console.error(
+"ABOUT SAVE ERROR:",
+error
+);
+
+setPanelMessage(
+"Hakkımızda bilgileri kaydedilemedi."
+);
+
+setAboutSaving(false);
+
+return;
+
+}
+
+setPanelMessage(
+"Hakkımızda bölümü başarıyla güncellendi."
+);
+
+setAboutSaving(false);
+
+}
+
 async function loadContactSettings() {
 
 setContactLoading(true);
@@ -3513,6 +3682,32 @@ Destek
 </span>
 
 )}
+
+</button>
+
+<button
+
+className={`admin-menu-item ${
+
+activeTab === "about"
+
+? "active"
+
+: ""
+
+}`}
+
+onClick={() => {
+
+setPanelMessage("");
+
+setActiveTab("about");
+
+}}
+
+>
+
+Hakkımızda
 
 </button>
 
@@ -6686,6 +6881,146 @@ SİL
 
 )}
 
+{activeTab === "about" && (
+
+<>
+
+<div className="admin-section-heading">
+
+<span>{siteConfig.brandName}</span>
+
+<h1>
+
+HAKKIMIZDA YÖNETİMİ
+
+</h1>
+
+<p>
+
+Sitedeki Hakkımızda bölümünün başlığını ve açıklamasını buradan değiştirebilirsin.
+Metni doğrudan kopyalayıp yapıştırabilir, kaydettiğinde sitede otomatik güncelleyebilirsin.
+
+</p>
+
+</div>
+
+<div className="admin-card">
+
+<div className="admin-card-heading">
+
+<span>
+
+HAKKIMIZDA İÇERİĞİ
+
+</span>
+
+<h2>
+
+Bölümü Düzenle
+
+</h2>
+
+</div>
+
+{aboutLoading ? (
+
+<div className="admin-empty">
+
+Hakkımızda bilgileri yükleniyor...
+
+</div>
+
+) : (
+
+<form
+className="about-admin-form"
+onSubmit={saveAboutSettings}
+>
+
+<label className="admin-field">
+
+<span>
+
+BAŞLIK
+
+</span>
+
+<input
+type="text"
+value={aboutTitle}
+onChange={(event) =>
+setAboutTitle(
+event.target.value
+)
+}
+maxLength={120}
+placeholder="Örn: ORTAMCS PRO PUBLIC"
+/>
+
+</label>
+
+<label className="admin-field about-admin-content">
+
+<span>
+
+AÇIKLAMA
+
+</span>
+
+<textarea
+value={aboutContent}
+onChange={(event) =>
+setAboutContent(
+event.target.value
+)
+}
+maxLength={4000}
+placeholder="Hakkımızda metnini buraya kopyalayıp yapıştırabilirsin."
+/>
+
+</label>
+
+<label className="contact-admin-toggle about-admin-toggle">
+
+<input
+type="checkbox"
+checked={aboutIsActive}
+onChange={(event) =>
+setAboutIsActive(
+event.target.checked
+)
+}
+/>
+
+<span>
+
+Sitede göster
+
+</span>
+
+</label>
+
+<button
+className="admin-primary-button about-admin-save"
+disabled={aboutSaving}
+>
+
+{aboutSaving
+? "KAYDEDİLİYOR..."
+: "HAKKIMIZDA BÖLÜMÜNÜ KAYDET"}
+
+</button>
+
+</form>
+
+)}
+
+</div>
+
+</>
+
+)}
+
 {activeTab === "contact" && (
 
 <>
@@ -6780,13 +7115,13 @@ placeholder="Örn: +90 555 555 55 55"
 
 <span>
 
-INSTAGRAM
+DISCORD
 
 </span>
 
 <input
 
-type="url"
+type="text"
 
 value={contactDiscord}
 
@@ -6800,7 +7135,7 @@ event.target.value
 
 }
 
-placeholder="https://instagram.com/kullaniciadi"
+placeholder="Kullanıcı adı veya https://discord.gg/..."
 
 />
 

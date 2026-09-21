@@ -180,6 +180,15 @@ function DesktopSidebarIcon({ name }) {
         </svg>
       );
 
+    case "hakkimizda":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M12 10.7v5.2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          <circle cx="12" cy="7.6" r="1" fill="currentColor" />
+        </svg>
+      );
+
     case "iletisim":
       return (
         <svg {...common}>
@@ -316,6 +325,12 @@ export default function Home() {
   const [contactLoading, setContactLoading] = useState(true);
 
   const [contactError, setContactError] = useState("");
+
+  const [aboutSettings, setAboutSettings] = useState(null);
+
+  const [aboutLoading, setAboutLoading] = useState(true);
+
+  const [aboutError, setAboutError] = useState("");
 
   const [announcements, setAnnouncements] = useState([]);
 
@@ -1039,6 +1054,47 @@ export default function Home() {
 
     let active = true;
 
+    async function getAboutSettings() {
+
+      setAboutLoading(true);
+
+      setAboutError("");
+
+      const { data, error } = await supabase
+        .from("about_settings")
+        .select("id, title, content, is_active, updated_at")
+        .eq("is_active", true)
+        .order("id", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!active) return;
+
+      if (error) {
+        console.error(error);
+        setAboutSettings(null);
+        setAboutError("Hakkımızda bilgileri şu anda yüklenemedi.");
+        setAboutLoading(false);
+        return;
+      }
+
+      setAboutSettings(data || null);
+      setAboutLoading(false);
+    }
+
+    getAboutSettings();
+
+    return () => {
+      active = false;
+    };
+
+  }, []);
+
+
+  useEffect(() => {
+
+    let active = true;
+
     async function getAnnouncements() {
 
       setAnnouncementsLoading(true);
@@ -1180,6 +1236,8 @@ export default function Home() {
       "dosyalar",
 
       "destek",
+
+      "hakkimizda",
 
       "iletisim",
 
@@ -1691,6 +1749,7 @@ export default function Home() {
             ["fiyatlar", "Fiyatlar"],
             ["dosyalar", "Dosyalar"],
             ["destek", "Destek"],
+            ["hakkimizda", "Hakkımızda"],
             ["iletisim", "İletişim"],
           ].map(([id, label]) => (
             <a
@@ -1851,6 +1910,14 @@ export default function Home() {
 
               [
 
+                "hakkimizda",
+
+                "Hakkımızda",
+
+              ],
+
+              [
+
                 "iletisim",
 
                 "İletişim",
@@ -1952,6 +2019,7 @@ export default function Home() {
             ["fiyatlar", "Fiyatlar"],
             ["dosyalar", "Dosyalar"],
             ["destek", "Destek"],
+            ["hakkimizda", "Hakkımızda"],
             ["iletisim", "İletişim"],
           ].map(([id, label], index) => (
             <a
@@ -4044,7 +4112,7 @@ export default function Home() {
 
                                 rel="noreferrer"
 
-                                title="cs8ailesi"
+                                title="lca.pro"
 
                               >
 
@@ -5083,6 +5151,51 @@ export default function Home() {
       </section>
 
       <section
+        id="hakkimizda"
+        className="content-section about-section site-section"
+      >
+        <div className="section-overlay"></div>
+
+        <div className="section-content about-section-content">
+          <div className="section-topline">
+            <span></span>
+            {siteConfig.brandName}
+            <span></span>
+          </div>
+
+          <h2 className="section-title">HAKKIMIZDA</h2>
+
+          {aboutLoading ? (
+            <div className="about-state">Hakkımızda bilgileri yükleniyor...</div>
+          ) : aboutError ? (
+            <div className="about-state about-state-error">{aboutError}</div>
+          ) : !aboutSettings ? (
+            <div className="about-state">Henüz hakkımızda içeriği eklenmedi.</div>
+          ) : (
+            <div className="about-wrap">
+              <article className="about-card">
+                <div className="about-card-line"></div>
+
+                <span className="about-card-kicker">ORTAMCS TOPLULUĞU</span>
+
+                <h3>{aboutSettings.title || "ORTAMCS PRO PUBLIC"}</h3>
+
+                {aboutSettings.content && (
+                  <p>{aboutSettings.content}</p>
+                )}
+
+                <div className="about-card-footer">
+                  <span></span>
+                  <small>OYUN • REKABET • TOPLULUK</small>
+                  <span></span>
+                </div>
+              </article>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section
 
         id="iletisim"
 
@@ -5194,7 +5307,7 @@ export default function Home() {
 
                       <strong>
 
-                        cs8ailesi
+                        lca.pro
 
                       </strong>
 
