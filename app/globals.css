@@ -4848,3 +4848,268 @@ button, input { font: inherit; }
     font-size: 9px;
   }
 }
+
+/* =========================================================
+   ADMIN PANEL - MOBIL YAN MENU / RAHAT KULLANIM
+   Eski max-width:700px kuralı sidebar'ı display:none yapıyordu.
+   Bu blok dosyanın sonunda olduğu için mobilde onu güvenli şekilde ezer.
+========================================================= */
+
+.admin-mobile-menu-button,
+.admin-mobile-menu-backdrop {
+  display: none;
+}
+
+.admin-mobile-menu-button {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(12, 12, 12, 0.42) !important;
+  border: 1px solid rgba(227, 38, 38, 0.18) !important;
+  border-radius: 11px !important;
+  cursor: pointer;
+  box-shadow: inset 0 0 18px rgba(227, 38, 38, 0.025) !important;
+}
+
+.admin-mobile-menu-button span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  margin: 0;
+  padding: 0;
+  background: #e32626 !important;
+  border-radius: 999px;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.admin-mobile-menu-button.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.admin-mobile-menu-button.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.admin-mobile-menu-button.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 700px) {
+  .admin-page {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .admin-header {
+    position: sticky !important;
+    top: 0;
+    z-index: 120 !important;
+    height: 68px !important;
+    min-height: 68px !important;
+    padding: 0 12px !important;
+    gap: 8px;
+  }
+
+  .admin-header-brand {
+    min-width: 0;
+    gap: 8px !important;
+  }
+
+  .admin-header-brand img {
+    width: 38px !important;
+    height: 38px !important;
+    flex: 0 0 38px;
+  }
+
+  .admin-header-brand > div {
+    min-width: 0;
+  }
+
+  .admin-header-brand strong {
+    display: block;
+    max-width: 130px;
+    overflow: hidden;
+    font-size: 13px !important;
+    letter-spacing: 1.5px !important;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .admin-header-brand span {
+    font-size: 6px !important;
+    letter-spacing: 2px !important;
+    white-space: nowrap;
+  }
+
+  .admin-mobile-menu-button {
+    display: flex !important;
+    margin-left: auto;
+  }
+
+  .admin-header-actions {
+    gap: 6px !important;
+    flex: 0 0 auto;
+  }
+
+  .admin-header-actions .admin-secondary-button {
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 0 10px !important;
+    font-size: 8px !important;
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .admin-layout {
+    min-height: calc(100vh - 68px) !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .admin-sidebar {
+    position: fixed !important;
+    top: 68px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 110 !important;
+    display: block !important;
+    width: min(292px, 86vw) !important;
+    height: calc(100dvh - 68px) !important;
+    padding: 18px 14px 28px !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: translateX(-105%);
+    transition: transform 0.24s ease;
+    background:
+      radial-gradient(
+        circle at 0% 0%,
+        rgba(227, 38, 38, 0.12),
+        transparent 36%
+      ),
+      rgba(7, 7, 7, 0.96) !important;
+    border-right: 1px solid rgba(227, 38, 38, 0.18) !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+    box-shadow: 18px 0 45px rgba(0, 0, 0, 0.48) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-title {
+    margin: 4px 10px 12px !important;
+    font-size: 8px !important;
+    letter-spacing: 3px !important;
+  }
+
+  .admin-sidebar .admin-menu-item {
+    height: 46px !important;
+    margin-bottom: 5px !important;
+    padding: 0 13px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .admin-mobile-menu-backdrop {
+    position: fixed;
+    inset: 68px 0 0 0;
+    z-index: 100;
+    display: block;
+    width: 100%;
+    height: calc(100dvh - 68px);
+    padding: 0;
+    background: rgba(0, 0, 0, 0.58) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    cursor: default;
+  }
+
+  .admin-content {
+    width: 100% !important;
+    min-width: 0;
+    padding: 22px 14px 34px !important;
+    margin: 0 !important;
+  }
+
+  .admin-content > div,
+  .admin-card {
+    max-width: 100%;
+  }
+
+  .admin-section-heading h1 {
+    font-size: clamp(27px, 9vw, 36px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: 1px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-section-heading p {
+    line-height: 1.55;
+  }
+
+  .admin-card {
+    margin-top: 20px !important;
+    padding: 18px 14px !important;
+    border-radius: 14px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-header-actions > a.admin-secondary-button {
+    display: none !important;
+  }
+
+  .admin-header-brand strong {
+    max-width: 112px;
+  }
+
+  .admin-header-actions .admin-secondary-button {
+    padding: 0 9px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .admin-header {
+    padding: 0 9px !important;
+  }
+
+  .admin-header-brand strong {
+    max-width: 92px;
+    font-size: 12px !important;
+  }
+
+  .admin-header-brand span {
+    letter-spacing: 1.4px !important;
+  }
+
+  .admin-mobile-menu-button {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .admin-content {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}
+
+/* =========================================================
+   ADMIN PANEL - MOBIL YAN MENU END
+========================================================= */
+

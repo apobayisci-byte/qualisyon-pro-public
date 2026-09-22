@@ -265,6 +265,24 @@ const [authLoading, setAuthLoading] = useState(true);
 
 const [activeTab, setActiveTab] = useState("gallery");
 
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+useEffect(() => {
+if (!mobileMenuOpen) return;
+
+function handleMobileMenuKeydown(event) {
+if (event.key === "Escape") {
+setMobileMenuOpen(false);
+}
+}
+
+window.addEventListener("keydown", handleMobileMenuKeydown);
+
+return () => {
+window.removeEventListener("keydown", handleMobileMenuKeydown);
+};
+}, [mobileMenuOpen]);
+
 const [email, setEmail] = useState("");
 
 const [password, setPassword] = useState("");
@@ -3676,6 +3694,18 @@ YÖNETİCİ PANELİ
 
 </div>
 
+<button
+type="button"
+className={`admin-mobile-menu-button ${mobileMenuOpen ? "active" : ""}`}
+onClick={() => setMobileMenuOpen((current) => !current)}
+aria-label={mobileMenuOpen ? "Yönetim menüsünü kapat" : "Yönetim menüsünü aç"}
+aria-expanded={mobileMenuOpen}
+>
+<span></span>
+<span></span>
+<span></span>
+</button>
+
 <div className="admin-header-actions">
 
 <a
@@ -3710,7 +3740,15 @@ onClick={handleLogout}
 
 <div className="admin-layout">
 
-<aside className="admin-sidebar">
+<aside
+className={`admin-sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}
+onClick={(event) => {
+const target = event.target;
+if (target instanceof Element && target.closest(".admin-menu-item")) {
+setMobileMenuOpen(false);
+}
+}}
+>
 
 <div className="admin-sidebar-title">
 
@@ -3989,6 +4027,15 @@ setActiveTab("contact");
 </button>
 
 </aside>
+
+{mobileMenuOpen && (
+<button
+type="button"
+className="admin-mobile-menu-backdrop"
+aria-label="Yönetim menüsünü kapat"
+onClick={() => setMobileMenuOpen(false)}
+/>
+)}
 
 <section className="admin-content">
 
